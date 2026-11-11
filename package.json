@@ -1,0 +1,26 @@
+{
+  "name": "modern-rhythm-battle",
+  "version": "0.1.0",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "concurrently \"bun run dev:server\" \"bun run dev:web\"",
+    "dev:web": "bun --filter @rhythm-battle/web dev",
+    "dev:frontend": "bun --filter @rhythm-battle/web dev",
+    "dev:server": "bun --filter @rhythm-battle/server dev",
+    "dev:backend": "bun --filter @rhythm-battle/server dev",
+    "build": "bun run build:server && bun run build:web",
+    "build:web": "bun --filter @rhythm-battle/web build",
+    "build:server": "bun --filter @rhythm-battle/server build",
+    "typecheck": "bun --filter \"*\" typecheck",
+    "db:test": "bun --filter @rhythm-battle/server db:test"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.0",
+    "typescript": "^5.6.3"
+  }
+}
+

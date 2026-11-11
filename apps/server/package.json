@@ -1,0 +1,25 @@
+{
+  "name": "@rhythm-battle/server",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "bun --watch src/index.ts",
+    "start": "bun src/index.ts",
+    "build": "bun build src/index.ts --outdir dist --target bun",
+    "typecheck": "tsc --noEmit",
+    "db:test": "bun src/database/test-connection.ts"
+  },
+  "dependencies": {
+    "@elysiajs/cors": "^1.1.1",
+    "@rhythm-battle/shared": "workspace:*",
+    "drizzle-orm": "^0.36.4",
+    "elysia": "^1.1.25",
+    "mysql2": "^3.11.4"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "drizzle-kit": "^0.28.1",
+    "typescript": "^5.6.3"
+  }
+}
+
