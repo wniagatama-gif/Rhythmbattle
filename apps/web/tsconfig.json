@@ -19,9 +19,9 @@
     "baseUrl": ".",
     "paths": {
       "@/*": ["src/*"],
-      "@rhythm-battle/shared": ["../../packages/shared/src/index.ts"]
+      "@rhythm-battle/shared": ["../../packages/shared/src/index.ts"],
+      "@rhythm-battle/game-data": ["../../packages/game-data/src/index.ts"]
     }
   },
   "include": ["src"]
 }
-

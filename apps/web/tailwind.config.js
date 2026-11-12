@@ -7,15 +7,18 @@ export default {
   theme: {
     extend: {
       colors: {
-        brand: {
-          dark: "#0b0f19",
-          card: "#121826",
-          accent: "#6366f1",
-          neon: "#06b6d4"
+        stage: {
+          bg: "#111318",
+          panel: "#181B22",
+          elevated: "#20242E",
+          border: "#64748B",
+          muted: "#A8B0BF",
+          accent: "#BE123C",
+          accentHover: "#9F1239",
+          accentRing: "#F43F5E"
         }
       }
     }
   },
   plugins: []
 };
-

@@ -5,5 +5,4 @@ export interface SongMetadata {
   bpm: number;
 }
 
-export const INITIAL_SONGS: SongMetadata[] = [];
-
+export * from "./charts";

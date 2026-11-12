@@ -7,7 +7,8 @@ export default defineConfig({
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
-      "@rhythm-battle/shared": path.resolve(__dirname, "../../packages/shared/src")
+      "@rhythm-battle/shared": path.resolve(__dirname, "../../packages/shared/src"),
+      "@rhythm-battle/game-data": path.resolve(__dirname, "../../packages/game-data/src")
     }
   },
   server: {
@@ -15,4 +16,3 @@ export default defineConfig({
     host: true
   }
 });
-

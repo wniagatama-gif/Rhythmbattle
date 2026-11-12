@@ -3,12 +3,12 @@
     "target": "ESNext",
     "module": "ESNext",
     "moduleResolution": "bundler",
+    "resolveJsonModule": true,
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "declaration": true
   },
-  "include": ["src/**/*"]
+  "include": ["src/**/*", "charts/**/*.json"]
 }
-
