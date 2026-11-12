@@ -1,226 +1,456 @@
-# ISSUE 001: PROJECT FOUNDATION
+# ISSUE 003: GAMEPLAY UI REDESIGN & LANE MAPPING CORRECTION
 
 **Project:** Modern Rhythm Battle  
-**Phase:** 1 - Project Foundation  
-**Priority:** Critical  
-**Status:** To Do
+**Phase:** 2 - Rhythm Engine  
+**Priority:** High  
+**Type:** UI/UX Redesign + Gameplay Input Correction  
+**Reference:** Friday Night Funkin (FNF) Modern
 
-## 1. Objective
+---
 
-Bangun fondasi awal proyek Modern Rhythm Battle menggunakan arsitektur monorepo berbasis Bun Workspaces.
+## 1. OBJECTIVE
 
-Proyek harus memiliki frontend React, backend ElysiaJS, shared package, dan game-data package yang terpisah dengan struktur yang rapi dan siap dikembangkan untuk game rhythm battle multiplayer berbasis browser.
+Lakukan redesign menyeluruh terhadap tampilan gameplay Modern Rhythm Battle sekaligus memperbaiki urutan lane dan keyboard mapping.
 
-Fokus pengerjaan adalah memastikan seluruh fondasi berjalan stabil. Jangan membuat gameplay, sistem pertarungan, karakter 3D, ataupun multiplayer pada tahap ini.
+Implementasi saat ini masih terlihat seperti rhythm game prototype generik. Area permainan terlalu kecil, banyak ruang kosong, tidak memiliki karakter, tidak memiliki arena, dan HUD belum memiliki identitas visual yang kuat.
 
-## 2. Technology Stack
+Selain itu, urutan lane dan keyboard mapping belum sesuai dengan konfigurasi yang ditentukan.
 
-Gunakan teknologi berikut:
+Tujuan pengerjaan:
 
-- Runtime dan package manager: Bun.
-- Monorepo: Bun Workspaces.
-- Frontend: React + Vite + TypeScript.
-- Styling: Tailwind CSS lokal.
-- Backend: Bun + ElysiaJS.
-- Database: MySQL.
-- ORM: Drizzle ORM.
-- Validation: Zod.
-- Version control: Git.
+1. Menghadirkan pengalaman visual yang terinspirasi Friday Night Funkin dengan identitas Modern Rhythm Battle sendiri.
+2. Membuat arena permainan yang lebih luas dan menarik.
+3. Menampilkan karakter pemain dan lawan.
+4. Mendesain ulang HUD, note, receptor, dan feedback visual.
+5. Memperbaiki urutan lane menjadi LEFT → DOWN → UP → RIGHT.
+6. Memastikan keyboard input sesuai dengan posisi lane.
+7. Mempertahankan seluruh gameplay logic dari ISSUE 002.
 
-Pastikan seluruh dependency dipasang secara lokal melalui package manager. Jangan menggunakan Tailwind CDN atau dependency yang dimuat dari CDN.
+**PENTING:** Jangan membangun ulang Rhythm Engine. Pertahankan seluruh sistem yang sudah berfungsi dan fokus pada redesign serta koreksi mapping.
 
-## 3. Project Structure
+## 2. PROJECT INSPECTION
 
-Buat struktur dasar berikut:
+Sebelum melakukan perubahan:
+
+1. Periksa struktur proyek hasil Phase 1 dan Phase 2.
+2. Identifikasi seluruh komponen gameplay yang sudah tersedia.
+3. Periksa implementasi note rendering dan lane mapping.
+4. Periksa keyboard input handler.
+5. Periksa chart loader dan format data chart.
+6. Periksa sistem audio dan game session.
+7. Identifikasi komponen yang dapat digunakan kembali.
+
+Jangan membuat komponen atau sistem baru yang menduplikasi implementasi yang sudah ada.
+
+Ikuti struktur aktual repository.
+
+## 3. VISUAL DIRECTION
+
+Gunakan konsep:
+
+**Modern FNF-Inspired Rhythm Battle**
+
+Karakteristik desain:
+
+- Modern arcade rhythm game.
+- Stylized cartoon visual.
+- Dynamic stage presentation.
+- Expressive character animation.
+- Bold typography.
+- Colorful directional notes.
+- High contrast HUD.
+- Smooth visual feedback.
+- Professional game interface.
+
+Inspirasi mekanik dan presentasi berasal dari Friday Night Funkin, tetapi desain karakter, arena, efek, dan identitas visual harus orisinal.
+
+Hindari tampilan seperti:
+
+- Dashboard admin.
+- Website statistik.
+- Minimalist data visualization.
+- Game typing racer.
+- Roblox-style generic interface.
+- Prototype dengan lane kecil di tengah dan ruang kosong berlebihan.
+
+## 4. GAMEPLAY VIEWPORT
+
+Gameplay harus menggunakan hampir seluruh area browser.
+
+Ketentuan:
+
+- Gunakan viewport-based layout.
+- Hilangkan footer website ketika gameplay berlangsung.
+- Hilangkan scrollbar yang tidak diperlukan.
+- Hindari ruang kosong berlebihan.
+- Jangan membatasi arena hanya pada kolom kecil di tengah.
+- Pastikan elemen permainan proporsional pada resolusi desktop.
+- Pastikan area note mudah terlihat.
+
+Gameplay harus terasa seperti layar permainan penuh, bukan halaman website yang kebetulan memiliki game di tengahnya.
+
+## 5. BATTLE STAGE
+
+Buat panggung permainan dengan perspektif side-view.
+
+### Player Side
+
+- Berada di bagian kiri.
+- Memiliki karakter pemain.
+- Karakter menghadap ke kanan.
+- Menampilkan identitas pemain.
+
+### Opponent Side
+
+- Berada di bagian kanan.
+- Memiliki karakter lawan.
+- Karakter menghadap ke kiri.
+- Menampilkan identitas lawan.
+
+### Rhythm Lane
+
+- Berada di area tengah sebagai fokus permainan.
+- Memiliki empat lane.
+- Lane cukup besar agar note mudah dikenali.
+- Receptor berada pada posisi konsisten.
+- Animasi note tidak boleh mengganggu visibilitas karakter.
+
+Untuk sementara, karakter dapat menggunakan placeholder artwork yang dirancang khusus.
+
+Siapkan struktur komponen agar model 3D GLB dapat diintegrasikan pada tahap berikutnya.
+
+Jangan menggunakan emoji sebagai aset utama karakter.
+
+## 6. FINAL LANE ORDER & KEYBOARD MAPPING
+
+<IMPORTANT>
+
+Urutan lane dari kiri ke kanan wajib:
+
+**LEFT → DOWN → UP → RIGHT**
+
+Ini adalah konfigurasi final Modern Rhythm Battle.
+
+Jangan menggunakan urutan LEFT → RIGHT → UP → DOWN atau urutan lainnya.
+
+</IMPORTANT>
+
+Gunakan konfigurasi berikut:
+
+| Lane Index | Direction | Keyboard | Color |
+|---|---|---|---|
+| 0 | LEFT (←) | ArrowLeft | Red / Pink |
+| 1 | DOWN (↓) | ArrowDown | Blue / Cyan |
+| 2 | UP (↑) | ArrowUp | Yellow / Orange |
+| 3 | RIGHT (→) | ArrowRight | Purple |
+
+Urutan visual:
 
 ```text
-modern-rhythm-battle/
-├── apps/
-│   ├── web/
-│   │   ├── public/
-│   │   ├── src/
-│   │   │   ├── app/
-│   │   │   ├── components/
-│   │   │   ├── features/
-│   │   │   ├── game/
-│   │   │   ├── services/
-│   │   │   ├── stores/
-│   │   │   ├── hooks/
-│   │   │   ├── styles/
-│   │   │   ├── utils/
-│   │   │   ├── App.tsx
-│   │   │   └── main.tsx
-│   │   ├── index.html
-│   │   ├── package.json
-│   │   └── vite.config.ts
-│   └── server/
-│       ├── src/
-│       │   ├── config/
-│       │   ├── modules/
-│       │   ├── database/
-│       │   ├── middleware/
-│       │   ├── services/
-│       │   ├── utils/
-│       │   └── index.ts
-│       └── package.json
-├── packages/
-│   ├── shared/
-│   │   ├── src/
-│   │   └── package.json
-│   └── game-data/
-│       ├── characters/
-│       ├── songs/
-│       ├── charts/
-│       └── package.json
-├── docs/
-├── scripts/
-├── tests/
-├── .env.example
-├── .gitignore
-├── package.json
-├── bun.lock
-└── README.md
+┌────────┬────────┬────────┬────────┐
+│   ←    │   ↓    │   ↑    │   →    │
+│  LEFT  │  DOWN  │   UP   │ RIGHT  │
+└────────┴────────┴────────┴────────┘
 ```
 
-Folder yang belum digunakan cukup disiapkan sebagai struktur. Jangan membuat implementasi fitur yang belum menjadi bagian dari issue ini.
+Mapping keyboard:
 
-## 4. Frontend Setup
-
-Siapkan aplikasi React menggunakan Vite dan TypeScript.
-
-Persyaratan:
-
-- Aplikasi dapat dijalankan melalui Bun.
-- Tailwind CSS dipasang dan dikonfigurasi secara lokal.
-- Pisahkan file CSS utama dari komponen React.
-- Buat halaman awal sederhana dengan identitas Modern Rhythm Battle.
-- Gunakan tampilan sementara yang bersih dan modern, bukan desain final game.
-- Siapkan konfigurasi environment untuk alamat backend.
-- Pastikan frontend dapat melakukan request ke backend.
-
-Jangan membuat sistem login, dashboard lengkap, menu game, atau gameplay.
-
-## 5. Backend Setup
-
-Siapkan backend menggunakan Bun dan ElysiaJS.
-
-Buat endpoint:
-
-**GET /api/health**
-
-Contoh respons:
-
-```json
-{
-  "success": true,
-  "message": "Modern Rhythm Battle API is running",
-  "service": "server"
-}
+```text
+ArrowLeft  → LEFT
+ArrowDown  → DOWN
+ArrowUp    → UP
+ArrowRight → RIGHT
 ```
 
 Persyaratan:
 
-- Backend berjalan menggunakan Bun.
-- Gunakan konfigurasi environment.
-- Pisahkan konfigurasi aplikasi dari entry point.
-- Aktifkan CORS untuk alamat frontend lokal.
-- Sediakan error handling dasar.
-- Pastikan endpoint health dapat diakses dari frontend.
+1. ArrowLeft hanya mengaktifkan lane LEFT.
+2. ArrowDown hanya mengaktifkan lane DOWN.
+3. ArrowUp hanya mengaktifkan lane UP.
+4. ArrowRight hanya mengaktifkan lane RIGHT.
+5. Tidak boleh ada pertukaran fungsi tombol.
+6. Setiap input hanya boleh mengaktifkan lane yang sesuai.
+7. Mapping visual dan fungsional harus menggunakan konfigurasi yang sama.
+8. Hindari mendefinisikan mapping terpisah di berbagai komponen.
 
-## 6. Shared Package
+Jika tersedia konfigurasi lane terpusat, gunakan dan perbarui konfigurasi tersebut.
 
-Siapkan package bersama untuk tipe data dan validasi yang nantinya digunakan frontend dan backend.
+Jika belum tersedia, buat satu konfigurasi terpusat yang menjadi sumber utama untuk UI dan input handler.
 
-Buat contoh:
+## 7. CHART COMPATIBILITY
 
-- API response type.
-- Common error type.
-- Konfigurasi dasar game.
-- Schema validasi menggunakan Zod.
+Periksa sistem chart yang sudah tersedia.
 
-Pastikan package dapat diimpor oleh aplikasi frontend dan backend tanpa masalah resolusi module.
+Lane identifier tetap menggunakan:
 
-## 7. Database Preparation
+- left
+- down
+- up
+- right
 
-Siapkan integrasi MySQL menggunakan Drizzle ORM.
+Jika chart menggunakan index numerik, pastikan index mengikuti urutan final:
 
-Untuk tahap ini:
+- 0 = left
+- 1 = down
+- 2 = up
+- 3 = right
 
-- Buat konfigurasi koneksi database.
-- Siapkan folder schema dan migration.
-- Buat contoh konfigurasi environment.
-- Pastikan koneksi database dapat diuji.
-- Jangan membuat tabel bisnis atau gameplay terlebih dahulu.
+Jangan mengubah:
 
-Jangan menaruh kredensial database langsung di source code.
+- Song ID.
+- Chart ID.
+- Note ID.
+- BPM.
+- Offset.
+- Timing note.
+- Note duration.
+- Judgment window.
+- Formula score.
+- Formula accuracy.
 
-## 8. Root Scripts
+Chart yang sudah ada harus tetap kompatibel.
 
-Buat script di root project untuk menjalankan:
+Jika ditemukan ketidaksesuaian antara chart dan lane mapping, lakukan penyesuaian dengan mempertahankan waktu dan identitas note.
 
-- Frontend development.
-- Backend development.
-- Menjalankan frontend dan backend bersama-sama.
-- Type checking.
-- Build frontend dan backend.
+## 8. NOTE LANE REDESIGN
 
-Gunakan Bun Workspaces dan pastikan perintah dapat dijalankan dari root repository.
+Tingkatkan tampilan visual empat lane:
 
-## 9. Environment Configuration
+- LEFT.
+- DOWN.
+- UP.
+- RIGHT.
 
-Buat `.env.example` yang mencakup konfigurasi minimum:
+Ketentuan:
 
-- Frontend API URL.
-- Backend port.
-- Database host.
-- Database port.
-- Database name.
-- Database username.
-- Database password.
+- Gunakan directional arrow yang jelas.
+- Gunakan warna berbeda untuk setiap lane.
+- Receptor terlihat jelas.
+- Note terlihat menonjol dari background.
+- Tambahkan efek hit ketika pemain berhasil menekan note.
+- Tambahkan efek miss yang berbeda.
+- Hold note memiliki kepala note dan sustain body.
+- Note tidak terpotong atau tertutup elemen UI.
+- Posisi note selalu sesuai dengan lane chart.
 
-Jangan memasukkan password asli.
+Urutan receptor harus sama dengan urutan note lane:
 
-## 10. Testing & Acceptance Criteria
+LEFT → DOWN → UP → RIGHT.
 
-Issue dinyatakan selesai apabila:
+Semua posisi note wajib tetap mengikuti timeline Rhythm Engine.
 
-- [ ] Struktur monorepo berhasil dibuat.
-- [ ] Bun Workspaces berjalan dengan benar.
-- [ ] Frontend React dapat dijalankan secara lokal.
-- [ ] Tailwind CSS lokal berfungsi.
-- [ ] Backend ElysiaJS dapat dijalankan.
-- [ ] Endpoint `/api/health` memberikan respons yang benar.
-- [ ] Frontend berhasil berkomunikasi dengan backend.
-- [ ] Shared package dapat digunakan oleh frontend dan backend.
-- [ ] Konfigurasi Drizzle ORM dan MySQL sudah disiapkan.
-- [ ] Environment example tersedia.
-- [ ] Type checking berjalan tanpa error.
+## 9. HEALTH BAR
+
+Tambahkan battle health bar pada bagian atas.
+
+Ketentuan:
+
+- Merepresentasikan kondisi kedua pemain.
+- Gunakan identitas visual berbeda untuk kedua sisi.
+- Tampilkan ikon atau avatar pemain pada kedua ujung.
+- Perubahan HP memiliki animasi transisi.
+- Siapkan komponen agar dapat menerima nilai HP dari Combat System pada Phase 3.
+
+Untuk tahap ini gunakan nilai visual sementara jika Combat System belum tersedia.
+
+Nilai placeholder tidak boleh mengubah score atau logic Rhythm Engine.
+
+## 10. HUD REDESIGN
+
+Tampilkan informasi permainan secara terintegrasi:
+
+- Player name.
+- Opponent name.
+- Song title.
+- Difficulty.
+- BPM.
+- Song progress.
+- Score.
+- Accuracy.
+- Current combo.
+- Max combo.
+- Judgment feedback.
+
+Jangan membuat setiap informasi menjadi kotak kecil terpisah yang memenuhi layar.
+
+Gunakan hierarki visual yang jelas.
+
+Score dan combo harus mudah terbaca selama permainan.
+
+## 11. HIT FEEDBACK
+
+Buat feedback judgment yang lebih ekspresif:
+
+- SICK.
+- GOOD.
+- BAD.
+- SHIT.
+- MISS.
+
+Ketentuan:
+
+- Muncul dekat area rhythm lane.
+- Memiliki animasi singkat.
+- Warna dan tipografi mudah dibedakan.
+- Tidak menghalangi note berikutnya.
+- Combo memiliki visual feedback ketika meningkat.
+- Hindari animasi terlalu besar yang mengganggu permainan.
+
+## 12. CHARACTER PRESENTATION
+
+Siapkan komponen karakter dengan state:
+
+- Idle.
+- Sing Left.
+- Sing Down.
+- Sing Up.
+- Sing Right.
+- Hurt.
+- Special.
+- Victory.
+- Defeat.
+
+Pada tahap ini animasi boleh menggunakan placeholder 2D atau CSS animation yang rapi.
+
+Pastikan arsitektur komponen dapat diganti dengan model 3D GLB pada tahap berikutnya.
+
+Karakter harus dapat memberikan reaksi visual terhadap gameplay.
+
+## 13. GAMEPLAY CONTROLS
+
+Rapikan kontrol permainan:
+
+- Pause.
+- Resume.
+- Restart.
+- Exit.
+
+Ketentuan:
+
+- Kontrol tidak mengambil ruang terlalu besar.
+- Pause menu muncul sebagai overlay.
+- Layout gameplay tidak berpindah ketika pause.
+- Keyboard input tetap mengikuti mapping final.
+- Tombol kontrol visual harus menggunakan urutan LEFT, DOWN, UP, RIGHT jika ditampilkan sebagai empat tombol lane.
+
+Jangan membuat mapping keyboard baru yang berbeda dari konfigurasi utama.
+
+## 14. SONG SELECTION REDESIGN
+
+Rapikan halaman song selection agar memiliki identitas game yang konsisten.
+
+Tampilkan:
+
+- Song title.
+- Cover artwork.
+- BPM.
+- Difficulty.
+- Best score.
+- Play button.
+
+Gunakan desain arcade game, bukan tabel administrasi.
+
+Jangan menghilangkan kemampuan memilih lagu dan chart yang sudah tersedia.
+
+## 15. RESPONSIVENESS
+
+Prioritaskan desktop browser.
+
+Pastikan:
+
+- Layout tidak pecah pada resolusi desktop.
+- Lane tetap terlihat.
+- Urutan lane tidak berubah.
+- HUD tidak bertumpuk.
+- Karakter tidak menutupi note.
+- Tombol kontrol tidak keluar dari viewport.
+- Gameplay tidak menghasilkan horizontal scrollbar.
+
+Siapkan fallback untuk layar lebih kecil.
+
+## 16. IMPLEMENTATION RULES
+
+1. Audit UI dan komponen yang sudah ada sebelum melakukan perubahan.
+2. Pertahankan seluruh logic ISSUE 002.
+3. Jangan mengubah format chart tanpa kebutuhan kompatibilitas yang jelas.
+4. Jangan mengubah judgment window.
+5. Jangan mengubah formula score dan accuracy.
+6. Jangan mengubah audio clock.
+7. Jangan menambahkan multiplayer.
+8. Jangan membuat combat damage atau special attack.
+9. Gunakan aset visual lokal.
+10. Jangan menggunakan URL gambar eksternal sebagai dependency utama.
+11. Gunakan komponen UI reusable.
+12. Pisahkan styling dari logic gameplay.
+13. Jangan menghapus fitur yang sudah berfungsi.
+14. Gunakan satu konfigurasi lane untuk rendering dan keyboard input.
+15. Pastikan perubahan mapping tidak mengubah timing note.
+
+## 17. ACCEPTANCE CRITERIA
+
+### UI/UX
+
+- [ ] Gameplay memenuhi hampir seluruh viewport.
+- [ ] Tidak ada footer website saat gameplay.
+- [ ] Tidak ada scrollbar yang tidak diperlukan.
+- [ ] Arena memiliki visual stage.
+- [ ] Terdapat karakter pemain di kiri.
+- [ ] Terdapat karakter lawan di kanan.
+- [ ] Empat lane memiliki visual yang jelas.
+- [ ] Note dan receptor memiliki desain baru.
+- [ ] Health bar tersedia sebagai visual presentation.
+- [ ] HUD terintegrasi dengan baik.
+- [ ] Judgment feedback memiliki animasi.
+- [ ] Combo memiliki visual feedback.
+- [ ] Pause menu bekerja.
+- [ ] Song selection memiliki desain konsisten.
+
+### Lane Mapping
+
+- [ ] Urutan lane LEFT → DOWN → UP → RIGHT.
+- [ ] ArrowLeft mengaktifkan lane pertama.
+- [ ] ArrowDown mengaktifkan lane kedua.
+- [ ] ArrowUp mengaktifkan lane ketiga.
+- [ ] ArrowRight mengaktifkan lane keempat.
+- [ ] Note muncul pada lane yang sesuai chart.
+- [ ] Receptor sesuai dengan arah lane.
+- [ ] Warna note dan receptor konsisten.
+- [ ] Tidak ada input yang tertukar.
+- [ ] Hold note tetap berfungsi.
+
+### Regression Testing
+
+- [ ] Rhythm Engine tetap berfungsi.
+- [ ] Audio dan note tetap sinkron.
+- [ ] Judgment tetap akurat.
+- [ ] Score dan accuracy tetap benar.
+- [ ] Combo tetap berfungsi.
+- [ ] Pause dan resume tetap berfungsi.
+- [ ] Restart tetap berfungsi.
+- [ ] Tidak ada error TypeScript.
 - [ ] Build berhasil.
-- [ ] README berisi petunjuk instalasi dan menjalankan proyek.
 
-## 11. Important Development Rules
+## 18. FINAL REPORT
 
-1. Jangan mengubah arsitektur utama tanpa alasan teknis yang jelas.
-2. Jangan menambahkan fitur di luar cakupan issue.
-3. Gunakan TypeScript secara konsisten.
-4. Hindari penggunaan `any` kecuali benar-benar diperlukan.
-5. Pisahkan tanggung jawab setiap modul.
-6. Jangan menyimpan secret di repository.
-7. Jangan menggunakan CDN untuk Tailwind CSS.
-8. Jangan membuat implementasi palsu yang hanya terlihat berjalan.
-9. Pastikan frontend dan backend benar-benar dapat berkomunikasi.
-10. Dokumentasikan dependency dan konfigurasi yang diperlukan.
+Setelah implementasi selesai, laporkan:
 
-## 12. Final Report
+1. Komponen UI yang dibuat atau diperbarui.
+2. Struktur file yang berubah.
+3. Aset visual yang digunakan.
+4. Konfigurasi lane yang digunakan.
+5. Hasil pengujian masing-masing tombol.
+6. Hasil pengujian chart compatibility.
+7. Hasil pengujian gameplay.
+8. Konfirmasi bahwa Rhythm Engine tidak rusak.
+9. Screenshot gameplay terbaru.
+10. Kendala dan pekerjaan yang belum selesai.
 
-Setelah implementasi selesai, berikan laporan berisi:
+## DEFINITION OF DONE
 
-- Struktur proyek yang berhasil dibuat.
-- Dependency yang dipasang.
-- File konfigurasi penting.
-- Perintah untuk menjalankan aplikasi.
-- Hasil pengujian.
-- Kendala yang ditemukan.
-- Hal yang belum selesai.
+Modern Rhythm Battle memiliki tampilan gameplay modern yang terinspirasi FNF dengan arena, karakter pemain dan lawan, empat lane, HUD, health bar presentation, dan feedback visual yang terintegrasi.
 
-**Definition of Done:** Fondasi Modern Rhythm Battle berjalan secara lokal, frontend dan backend saling terhubung, dan proyek siap memasuki Phase 2: Rhythm Engine.
+Seluruh sistem lane dan keyboard menggunakan urutan final:
+
+**LEFT → DOWN → UP → RIGHT**
+
+Redesign tidak boleh merusak Rhythm Engine yang sudah selesai pada ISSUE 002.

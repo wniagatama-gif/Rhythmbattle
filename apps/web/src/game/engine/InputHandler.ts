@@ -1,4 +1,4 @@
-import { LANE_KEYS } from "../constants";
+import { LANE_CONFIG } from "../constants";
 
 export interface InputCallbacks {
   onLanePress: (lane: number) => void;
@@ -12,9 +12,13 @@ export class InputHandler {
 
   constructor(callbacks: InputCallbacks) {
     this.callbacks = callbacks;
-    LANE_KEYS.forEach((key, index) => {
-      this.keyToLane.set(key, index);
-    });
+    for (const lane of LANE_CONFIG) {
+      this.keyToLane.set(lane.key, lane.index);
+    }
+  }
+
+  getLaneForKey(key: string): number | undefined {
+    return this.keyToLane.get(key);
   }
 
   private readonly handleKeyDown = (event: KeyboardEvent): void => {
@@ -67,4 +71,3 @@ export class InputHandler {
     this.callbacks.onLaneRelease(lane);
   }
 }
-

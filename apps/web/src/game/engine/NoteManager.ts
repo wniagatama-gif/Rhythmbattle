@@ -11,6 +11,7 @@ export class NoteManager {
       time: note.time,
       lane: note.lane,
       type: note.type,
+      duration: note.duration,
       y: -NOTE_HEIGHT * 2,
       status: "pending"
     }));
@@ -31,6 +32,14 @@ export class NoteManager {
 
       const timeDiffSec = note.time - currentTime;
       note.y = hitZoneY - timeDiffSec * scrollSpeed;
+
+      if (note.status === "holding") {
+        const endTime = note.time + (note.duration ?? 0);
+        if (currentTime >= endTime) {
+          note.status = "hit";
+        }
+        continue;
+      }
 
       if (note.status === "pending" && note.y >= -NOTE_HEIGHT) {
         note.status = "active";
@@ -70,18 +79,37 @@ export class NoteManager {
 
   markHit(noteId: string): void {
     const note = this.notes.find((item) => item.id === noteId);
-    if (note) {
-      note.status = "hit";
+    if (!note) {
+      return;
     }
+    if (note.type === "hold" && (note.duration ?? 0) > 0) {
+      note.status = "holding";
+      return;
+    }
+    note.status = "hit";
   }
 
-  getVisibleNotes(canvasHeight: number): readonly NoteObject[] {
-    return this.notes.filter(
-      (note) =>
-        (note.status === "pending" || note.status === "active") &&
-        note.y >= -NOTE_HEIGHT &&
-        note.y <= canvasHeight + NOTE_HEIGHT
-    );
+  releaseHold(lane: number, currentTime: number): boolean {
+    const held = this.notes.find((item) => item.lane === lane && item.status === "holding");
+    if (!held) {
+      return false;
+    }
+    const endTime = held.time + (held.duration ?? 0);
+    // Allow small 120ms release grace near the end of a sustain tail.
+    held.status = currentTime >= endTime - 0.12 ? "hit" : "missed";
+    return held.status === "hit";
+  }
+
+  getVisibleNotes(canvasHeight: number, scrollSpeed = 600): readonly NoteObject[] {
+    return this.notes.filter((note) => {
+      if (note.status !== "pending" && note.status !== "active" && note.status !== "holding") {
+        return false;
+      }
+      const tailHeight = (note.duration ?? 0) * scrollSpeed;
+      const topY = note.y - tailHeight - NOTE_HEIGHT;
+      const bottomY = note.y + NOTE_HEIGHT;
+      return bottomY >= -NOTE_HEIGHT && topY <= canvasHeight + NOTE_HEIGHT;
+    });
   }
 
   getTotalNotes(): number {
@@ -92,4 +120,3 @@ export class NoteManager {
     return this.notes.every((note) => note.status === "hit" || note.status === "missed");
   }
 }
-

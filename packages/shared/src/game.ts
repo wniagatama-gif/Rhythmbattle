@@ -28,12 +28,33 @@ export const DEFAULT_GAME_CONFIG: GameBaseConfig = {
   audioOffsetMs: 0
 };
 
-export const NoteTypeSchema = z.literal("tap");
+export const LANE_DIRECTION_INDEX = {
+  left: 0,
+  down: 1,
+  up: 2,
+  right: 3
+} as const;
+
+export const LaneDirectionSchema = z.enum(["left", "down", "up", "right"]);
+export type LaneDirection = z.infer<typeof LaneDirectionSchema>;
+
+export const NoteTypeSchema = z.enum(["tap", "hold"]);
+
+const LaneIndexSchema = z.preprocess((value) => {
+  if (typeof value === "string") {
+    const normalized = value.trim().toLowerCase();
+    if (normalized in LANE_DIRECTION_INDEX) {
+      return LANE_DIRECTION_INDEX[normalized as LaneDirection];
+    }
+  }
+  return value;
+}, z.number().int().min(0).max(DEFAULT_GAME_CONFIG.lanesCount - 1));
 
 export const NoteDataSchema = z.object({
   time: z.number().finite().nonnegative(),
-  lane: z.number().int().min(0).max(DEFAULT_GAME_CONFIG.lanesCount - 1),
-  type: NoteTypeSchema
+  lane: LaneIndexSchema,
+  type: NoteTypeSchema,
+  duration: z.number().finite().positive().optional()
 });
 
 export const BpmEventSchema = z.object({

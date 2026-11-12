@@ -1,10 +1,11 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { RAW_CHART_FILES } from "@rhythm-battle/game-data";
 import type { HealthResponse } from "@rhythm-battle/shared";
 import { GamePlayScreen } from "./components/GamePlayScreen";
 import { ResultScreen } from "./components/ResultScreen";
 import { SongSelectScreen } from "./components/SongSelectScreen";
 import { ChartParser } from "./game/engine/ChartParser";
+import { loadBestScores, recordBestScore, type BestScoresMap } from "./game/storage/bestScores";
 import type { ChartFile } from "./game/types/chart";
 import { useRhythmEngine } from "./hooks/useRhythmEngine";
 import { fetchHealthStatus } from "./services/api";
@@ -13,6 +14,9 @@ export function App() {
   const [health, setHealth] = useState<HealthResponse | null>(null);
   const [healthLoading, setHealthLoading] = useState<boolean>(true);
   const [healthError, setHealthError] = useState<string | null>(null);
+  const [bestScores, setBestScores] = useState<BestScoresMap>(() => loadBestScores());
+  const [isNewBest, setIsNewBest] = useState<boolean>(false);
+  const recordedResultRef = useRef<boolean>(false);
 
   const parsedChartsResult = useMemo<{ charts: ChartFile[]; error: string | null }>(() => {
     try {
@@ -73,24 +77,73 @@ export function App() {
     parsedChartsResult.charts[0] ??
     null;
 
+  useEffect(() => {
+    if (snapshot.phase !== "result") {
+      recordedResultRef.current = false;
+      setIsNewBest(false);
+      return;
+    }
+
+    if (activeChart && !recordedResultRef.current) {
+      recordedResultRef.current = true;
+      const result = recordBestScore(
+        activeChart.id,
+        snapshot.scoreState.score,
+        snapshot.scoreState.accuracy,
+        snapshot.scoreState.maxCombo
+      );
+      setBestScores(result.bestScores);
+      setIsNewBest(result.isNewBest);
+    }
+  }, [snapshot.phase, snapshot.scoreState, activeChart]);
+
+  const isGameplayPhase =
+    snapshot.phase === "countdown" ||
+    snapshot.phase === "playing" ||
+    snapshot.phase === "paused";
+
+  if (isGameplayPhase && activeChart) {
+    return (
+      <GamePlayScreen
+        chart={activeChart}
+        snapshot={snapshot}
+        setCanvasRef={setCanvasElement}
+        onPause={pause}
+        onResume={resume}
+        onRestart={() => void startChart(activeChart)}
+        onExit={backToSongSelect}
+        onLanePress={triggerLanePress}
+        onLaneRelease={triggerLaneRelease}
+      />
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-[#111318] text-[#F3F4F6] flex flex-col">
-      <header className="border-b border-[#2E3442] bg-[#111318]">
-        <div className="max-w-5xl w-full mx-auto px-4 sm:px-6 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <div>
-            <h1 className="text-xl font-bold tracking-tight text-[#F3F4F6]">
-              Modern Rhythm Battle
-            </h1>
-            <p className="text-xs text-[#A8B0BF]">
-              Phase 2: Rhythm Engine (draft without direction)
-            </p>
+    <div className="min-h-dvh bg-[#0B0D14] text-[#F8FAFC] flex flex-col">
+      <header className="border-b-2 border-[#090B10] bg-[#141824]">
+        <div className="max-w-6xl w-full mx-auto px-4 sm:px-6 py-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <div
+              aria-hidden="true"
+              className="w-9 h-9 rounded-lg bg-[#BE123C] border-2 border-[#090B10] shadow-[0_3px_0_#05070B] flex items-center justify-center font-black text-sm text-white"
+            >
+              RB
+            </div>
+            <div>
+              <h1 className="text-lg sm:text-xl font-black tracking-tight uppercase text-[#F8FAFC]">
+                Modern Rhythm Battle
+              </h1>
+              <p className="text-xs font-semibold text-[#CBD5E1]">
+                4-Lane Arcade Rhythm Stage
+              </p>
+            </div>
           </div>
 
           <div className="flex items-center gap-3 flex-wrap">
-            <div className="text-xs text-[#A8B0BF] flex items-center gap-2">
+            <div className="text-xs font-semibold text-[#CBD5E1] flex items-center gap-2">
               <span
                 aria-hidden="true"
-                className={`inline-block w-2 h-2 rounded-full ${
+                className={`inline-block w-2.5 h-2.5 rounded-full border border-[#090B10] ${
                   healthLoading
                     ? "bg-[#FBBF24]"
                     : health?.success
@@ -112,7 +165,7 @@ export function App() {
               type="button"
               onClick={() => void checkBackendHealth()}
               disabled={healthLoading}
-              className="min-h-[44px] px-3 py-2 rounded-md bg-[#181B22] border border-[#64748B] text-xs font-medium text-[#F3F4F6] hover:bg-[#20242E] disabled:opacity-50"
+              className="min-h-[44px] px-3.5 py-2 rounded-md bg-[#1E2436] border-2 border-[#090B10] shadow-[0_3px_0_#05070B] text-xs font-extrabold uppercase text-[#F8FAFC] hover:bg-[#2A334B] disabled:opacity-50"
             >
               Check API
             </button>
@@ -120,10 +173,11 @@ export function App() {
         </div>
       </header>
 
-      <main className="max-w-5xl w-full mx-auto px-4 sm:px-6 py-8 flex-1">
+      <main className="max-w-6xl w-full mx-auto px-4 sm:px-6 py-6 sm:py-8 flex-1">
         {snapshot.phase === "song-select" && (
           <SongSelectScreen
             charts={parsedChartsResult.charts}
+            bestScores={bestScores}
             parseError={parsedChartsResult.error}
             engineError={engineError}
             selectedChartId={selectedChartId}
@@ -136,37 +190,21 @@ export function App() {
           />
         )}
 
-        {(snapshot.phase === "countdown" ||
-          snapshot.phase === "playing" ||
-          snapshot.phase === "paused") &&
-          activeChart && (
-            <GamePlayScreen
-              chart={activeChart}
-              snapshot={snapshot}
-              setCanvasRef={setCanvasElement}
-              onPause={pause}
-              onResume={resume}
-              onRestart={() => void startChart(activeChart)}
-              onExit={backToSongSelect}
-              onLanePress={triggerLanePress}
-              onLaneRelease={triggerLaneRelease}
-            />
-          )}
-
         {snapshot.phase === "result" && activeChart && (
           <ResultScreen
             chart={activeChart}
             scoreState={snapshot.scoreState}
+            isNewBest={isNewBest}
             onPlayAgain={() => void startChart(activeChart)}
             onBackToList={backToSongSelect}
           />
         )}
       </main>
 
-      <footer className="border-t border-[#2E3442]">
-        <div className="max-w-5xl w-full mx-auto px-4 sm:px-6 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs text-[#A8B0BF]">
+      <footer className="border-t-2 border-[#090B10] bg-[#141824]">
+        <div className="max-w-6xl w-full mx-auto px-4 sm:px-6 py-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs font-semibold text-[#CBD5E1]">
           <span>Modern Rhythm Battle</span>
-          <span>Issue 002: Rhythm Engine</span>
+          <span>LEFT / DOWN / UP / RIGHT Arcade Engine</span>
         </div>
       </footer>
     </div>

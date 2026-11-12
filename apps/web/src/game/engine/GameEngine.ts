@@ -5,15 +5,14 @@ import {
   COUNTDOWN_STEPS,
   DEFAULT_SCROLL_SPEED,
   HIT_ZONE_Y,
-  LANE_COLORS,
+  LANE_CONFIG,
   LANE_COUNT,
-  LANE_LABELS,
   NOTE_HEIGHT,
   NOTE_WIDTH,
   SONG_END_TAIL_SEC
 } from "../constants";
 import type { ChartFile } from "../types/chart";
-import type { GamePhase, GameSnapshot, JudgementResult } from "../types/game";
+import type { GamePhase, GameSnapshot, JudgementResult, NoteObject } from "../types/game";
 import { AudioEngine } from "./AudioEngine";
 import { ChartParser } from "./ChartParser";
 import { InputHandler } from "./InputHandler";
@@ -22,6 +21,13 @@ import { NoteManager } from "./NoteManager";
 import { ScoreEngine } from "./ScoreEngine";
 
 export type GameSnapshotListener = (snapshot: GameSnapshot) => void;
+
+interface LaneVisualEffect {
+  lane: number;
+  kind: "hit" | "miss";
+  createdAt: number;
+  durationMs: number;
+}
 
 export class GameEngine {
   private readonly audio = new AudioEngine();
@@ -41,6 +47,7 @@ export class GameEngine {
   private countdownLabel = "";
   private lastJudgement: JudgementResult | null = null;
   private activeLanes: boolean[] = [false, false, false, false];
+  private laneEffects: LaneVisualEffect[] = [];
   private listener: GameSnapshotListener | null = null;
 
   constructor(listener?: GameSnapshotListener) {
@@ -87,6 +94,7 @@ export class GameEngine {
     this.score.reset(this.notes.getTotalNotes());
     this.lastJudgement = null;
     this.activeLanes = [false, false, false, false];
+    this.laneEffects = [];
 
     await this.audio.load(parsedChart);
 
@@ -140,18 +148,20 @@ export class GameEngine {
         const result = this.judgement.createAutoMiss(missed, currentTime);
         this.lastJudgement = result;
         this.score.apply(result);
+        this.pushLaneEffect(missed.lane, "miss");
       }
 
       this.renderFrame();
       this.emitSnapshot();
 
       const lastNote = this.chart?.notes[this.chart.notes.length - 1];
+      const lastNoteEnd = (lastNote?.time ?? 0) + (lastNote?.duration ?? 0);
       const finishTime = Math.max(
         this.audio.getDuration(),
-        (lastNote?.time ?? 0) + SONG_END_TAIL_SEC
+        lastNoteEnd + SONG_END_TAIL_SEC
       );
 
-      if (this.notes.areAllNotesJudged() && currentTime >= (lastNote?.time ?? 0) + SONG_END_TAIL_SEC) {
+      if (this.notes.areAllNotesJudged() && currentTime >= lastNoteEnd + SONG_END_TAIL_SEC) {
         this.finishSong();
         return;
       }
@@ -233,6 +243,9 @@ export class GameEngine {
       this.score.apply(result);
       if (result.type !== "MISS") {
         this.audio.playHitCue(lane);
+        this.pushLaneEffect(lane, "hit");
+      } else {
+        this.pushLaneEffect(lane, "miss");
       }
       this.emitSnapshot();
     }
@@ -245,7 +258,168 @@ export class GameEngine {
       return;
     }
     this.activeLanes[lane] = false;
+    if (this.phase === "playing") {
+      const currentTime = this.audio.getCurrentTime();
+      const completed = this.notes.releaseHold(lane, currentTime);
+      if (completed) {
+        this.pushLaneEffect(lane, "hit");
+      }
+    }
     this.renderFrame();
+  }
+
+  private pushLaneEffect(lane: number, kind: "hit" | "miss"): void {
+    this.laneEffects.push({
+      lane,
+      kind,
+      createdAt: performance.now(),
+      durationMs: kind === "hit" ? 240 : 280
+    });
+  }
+
+  private drawArrowShape(
+    ctx: CanvasRenderingContext2D,
+    centerX: number,
+    centerY: number,
+    size: number,
+    rotationDeg: number,
+    fillStyle: string,
+    strokeStyle: string,
+    lineWidth: number,
+    innerAccent?: string
+  ): void {
+    const half = size * 0.43;
+    const shaftHalf = size * 0.16;
+    const headBaseX = -size * 0.04;
+
+    ctx.save();
+    ctx.translate(centerX, centerY);
+    ctx.rotate((rotationDeg * Math.PI) / 180);
+
+    // Base arrow points LEFT (-X); rotationDeg aligns it to LEFT/DOWN/UP/RIGHT.
+    ctx.beginPath();
+    ctx.moveTo(-half, 0);
+    ctx.lineTo(headBaseX, -half);
+    ctx.lineTo(headBaseX, -shaftHalf);
+    ctx.lineTo(half, -shaftHalf);
+    ctx.lineTo(half, shaftHalf);
+    ctx.lineTo(headBaseX, shaftHalf);
+    ctx.lineTo(headBaseX, half);
+    ctx.closePath();
+
+    ctx.lineJoin = "round";
+    ctx.fillStyle = fillStyle;
+    ctx.fill();
+
+    if (innerAccent) {
+      ctx.save();
+      ctx.scale(0.68, 0.68);
+      ctx.fillStyle = innerAccent;
+      ctx.fill();
+      ctx.restore();
+    }
+
+    ctx.strokeStyle = strokeStyle;
+    ctx.lineWidth = lineWidth;
+    ctx.stroke();
+
+    ctx.restore();
+  }
+
+  private drawHoldSustain(
+    ctx: CanvasRenderingContext2D,
+    note: NoteObject,
+    centerX: number,
+    laneColor: string,
+    laneDark: string
+  ): void {
+    const durationSec = note.duration ?? 0;
+    if (durationSec <= 0) {
+      return;
+    }
+
+    const sustainLength = durationSec * this.scrollSpeed;
+    const headY = note.status === "holding" ? Math.min(HIT_ZONE_Y, note.y) : note.y;
+    const tailEndY = note.y - sustainLength;
+    const visibleHeight = headY - tailEndY;
+    if (visibleHeight <= 2) {
+      return;
+    }
+
+    const bodyWidth = NOTE_WIDTH * 0.34;
+    const bodyX = centerX - bodyWidth / 2;
+
+    ctx.save();
+    ctx.fillStyle = laneDark;
+    ctx.globalAlpha = note.status === "holding" ? 0.92 : 0.72;
+    ctx.fillRect(bodyX, tailEndY, bodyWidth, visibleHeight);
+
+    const innerWidth = bodyWidth * 0.45;
+    ctx.fillStyle = laneColor;
+    ctx.fillRect(centerX - innerWidth / 2, tailEndY, innerWidth, visibleHeight);
+
+    ctx.strokeStyle = "#090B10";
+    ctx.lineWidth = 2;
+    ctx.strokeRect(bodyX, tailEndY, bodyWidth, visibleHeight);
+
+    // Rounded sustain cap at the top end of the hold trail.
+    ctx.beginPath();
+    ctx.arc(centerX, tailEndY, bodyWidth / 2, Math.PI, 0);
+    ctx.fillStyle = laneColor;
+    ctx.fill();
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  private drawLaneEffects(ctx: CanvasRenderingContext2D, laneWidth: number): void {
+    const now = performance.now();
+    this.laneEffects = this.laneEffects.filter((effect) => now - effect.createdAt < effect.durationMs);
+
+    for (const effect of this.laneEffects) {
+      const laneDef = LANE_CONFIG[effect.lane];
+      if (!laneDef) {
+        continue;
+      }
+      const progress = Math.min(1, (now - effect.createdAt) / effect.durationMs);
+      const alpha = 1 - progress;
+      const centerX = effect.lane * laneWidth + laneWidth / 2;
+
+      ctx.save();
+      ctx.globalAlpha = alpha;
+
+      if (effect.kind === "hit") {
+        const radius = NOTE_WIDTH * (0.45 + progress * 0.45);
+        ctx.strokeStyle = laneDef.color;
+        ctx.lineWidth = 4 * (1 - progress * 0.5);
+        ctx.beginPath();
+        ctx.arc(centerX, HIT_ZONE_Y, radius, 0, Math.PI * 2);
+        ctx.stroke();
+
+        // Four radial arcade sparks around the receptor hit.
+        const sparkDist = NOTE_WIDTH * (0.38 + progress * 0.42);
+        ctx.fillStyle = "#F8FAFC";
+        for (let i = 0; i < 4; i += 1) {
+          const angle = (Math.PI / 4) + (i * Math.PI) / 2;
+          const sx = centerX + Math.cos(angle) * sparkDist;
+          const sy = HIT_ZONE_Y + Math.sin(angle) * sparkDist;
+          ctx.fillRect(sx - 3, sy - 3, 6, 6);
+        }
+      } else {
+        // Miss cross flash on the receptor.
+        const crossSize = 18 + progress * 6;
+        ctx.strokeStyle = "#FB7185";
+        ctx.lineWidth = 5;
+        ctx.lineCap = "round";
+        ctx.beginPath();
+        ctx.moveTo(centerX - crossSize, HIT_ZONE_Y - crossSize);
+        ctx.lineTo(centerX + crossSize, HIT_ZONE_Y + crossSize);
+        ctx.moveTo(centerX + crossSize, HIT_ZONE_Y - crossSize);
+        ctx.lineTo(centerX - crossSize, HIT_ZONE_Y + crossSize);
+        ctx.stroke();
+      }
+
+      ctx.restore();
+    }
   }
 
   private renderFrame(): void {
@@ -254,26 +428,27 @@ export class GameEngine {
       return;
     }
 
-    ctx.fillStyle = "#111318";
+    ctx.fillStyle = "#0B0D14";
     ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 
     const laneWidth = CANVAS_WIDTH / LANE_COUNT;
 
-    // Draw lane tracks and active press highlight.
-    for (let lane = 0; lane < LANE_COUNT; lane += 1) {
+    // Draw lane tracks and active key press columns.
+    for (const laneDef of LANE_CONFIG) {
+      const lane = laneDef.index;
       const x = lane * laneWidth;
 
       if (this.activeLanes[lane]) {
-        ctx.fillStyle = "rgba(244, 63, 94, 0.14)";
+        ctx.fillStyle = laneDef.activeBgTint;
         ctx.fillRect(x, 0, laneWidth, CANVAS_HEIGHT);
       } else if (lane % 2 === 1) {
-        ctx.fillStyle = "rgba(255, 255, 255, 0.02)";
+        ctx.fillStyle = "rgba(255, 255, 255, 0.025)";
         ctx.fillRect(x, 0, laneWidth, CANVAS_HEIGHT);
       }
 
       if (lane > 0) {
-        ctx.strokeStyle = "#2E3442";
-        ctx.lineWidth = 1;
+        ctx.strokeStyle = "#1E2436";
+        ctx.lineWidth = 2;
         ctx.beginPath();
         ctx.moveTo(x, 0);
         ctx.lineTo(x, CANVAS_HEIGHT);
@@ -281,55 +456,66 @@ export class GameEngine {
       }
     }
 
-    // Draw horizontal hit-zone baseline.
-    ctx.strokeStyle = "#F43F5E";
+    // Draw subtle hit-zone guide line behind receptors.
+    ctx.strokeStyle = "#2E364F";
     ctx.lineWidth = 3;
     ctx.beginPath();
     ctx.moveTo(0, HIT_ZONE_Y);
     ctx.lineTo(CANVAS_WIDTH, HIT_ZONE_Y);
     ctx.stroke();
 
-    // Draw receptor boxes and arrow labels inside the hit zone.
-    for (let lane = 0; lane < LANE_COUNT; lane += 1) {
+    // Draw directional receptors in final LEFT -> DOWN -> UP -> RIGHT order.
+    for (const laneDef of LANE_CONFIG) {
+      const lane = laneDef.index;
       const centerX = lane * laneWidth + laneWidth / 2;
-      const boxX = centerX - NOTE_WIDTH / 2;
-      const boxY = HIT_ZONE_Y - NOTE_HEIGHT / 2;
-      const laneColor = LANE_COLORS[lane] ?? "#F3F4F6";
+      const isActive = this.activeLanes[lane] ?? false;
+      const receptorSize = isActive ? NOTE_WIDTH * 0.94 : NOTE_WIDTH;
 
-      ctx.strokeStyle = this.activeLanes[lane] ? laneColor : "#64748B";
-      ctx.lineWidth = this.activeLanes[lane] ? 2.5 : 1.5;
-      ctx.fillStyle = this.activeLanes[lane] ? "rgba(255,255,255,0.10)" : "#181B22";
-      ctx.fillRect(boxX, boxY, NOTE_WIDTH, NOTE_HEIGHT);
-      ctx.strokeRect(boxX, boxY, NOTE_WIDTH, NOTE_HEIGHT);
-
-      ctx.fillStyle = this.activeLanes[lane] ? "#F3F4F6" : "#A8B0BF";
-      ctx.font = "600 15px system-ui, sans-serif";
-      ctx.textAlign = "center";
-      ctx.textBaseline = "middle";
-      ctx.fillText(LANE_LABELS[lane] ?? "", centerX, HIT_ZONE_Y);
+      this.drawArrowShape(
+        ctx,
+        centerX,
+        HIT_ZONE_Y,
+        receptorSize,
+        laneDef.rotationDeg,
+        isActive ? laneDef.darkColor : "#141824",
+        isActive ? laneDef.color : "#475569",
+        isActive ? 4 : 3,
+        isActive ? laneDef.color : undefined
+      );
     }
 
-    // Draw falling notes.
-    const visibleNotes = this.notes.getVisibleNotes(CANVAS_HEIGHT);
+    // Draw falling hold sustain bodies first, then directional note heads.
+    const visibleNotes = this.notes.getVisibleNotes(CANVAS_HEIGHT, this.scrollSpeed);
     for (const note of visibleNotes) {
+      const laneDef = LANE_CONFIG[note.lane];
+      if (!laneDef) {
+        continue;
+      }
       const centerX = note.lane * laneWidth + laneWidth / 2;
-      const noteX = centerX - NOTE_WIDTH / 2;
-      const noteY = note.y - NOTE_HEIGHT / 2;
-      const laneColor = LANE_COLORS[note.lane] ?? "#F3F4F6";
-
-      ctx.fillStyle = laneColor;
-      ctx.fillRect(noteX, noteY, NOTE_WIDTH, NOTE_HEIGHT);
-
-      ctx.strokeStyle = "#111318";
-      ctx.lineWidth = 2;
-      ctx.strokeRect(noteX, noteY, NOTE_WIDTH, NOTE_HEIGHT);
-
-      ctx.fillStyle = "#111318";
-      ctx.font = "700 15px system-ui, sans-serif";
-      ctx.textAlign = "center";
-      ctx.textBaseline = "middle";
-      ctx.fillText(LANE_LABELS[note.lane] ?? "", centerX, note.y);
+      this.drawHoldSustain(ctx, note, centerX, laneDef.color, laneDef.darkColor);
     }
+
+    for (const note of visibleNotes) {
+      const laneDef = LANE_CONFIG[note.lane];
+      if (!laneDef) {
+        continue;
+      }
+      const centerX = note.lane * laneWidth + laneWidth / 2;
+      const headY = note.status === "holding" ? HIT_ZONE_Y : note.y;
+      this.drawArrowShape(
+        ctx,
+        centerX,
+        headY,
+        NOTE_WIDTH,
+        laneDef.rotationDeg,
+        laneDef.color,
+        "#090B10",
+        3.5,
+        "rgba(255, 255, 255, 0.30)"
+      );
+    }
+
+    this.drawLaneEffects(ctx, laneWidth);
   }
 
   private emitSnapshot(): void {
@@ -371,4 +557,3 @@ export class GameEngine {
     this.listener = null;
   }
 }
-

@@ -1,10 +1,40 @@
 import { describe, expect, test } from "bun:test";
 import { RAW_CHART_FILES } from "../packages/game-data/src";
 import { ChartParser } from "../apps/web/src/game/engine/ChartParser";
+import { InputHandler } from "../apps/web/src/game/engine/InputHandler";
 import { JudgementEngine } from "../apps/web/src/game/engine/JudgementEngine";
 import { NoteManager } from "../apps/web/src/game/engine/NoteManager";
 import { ScoreEngine } from "../apps/web/src/game/engine/ScoreEngine";
-import { HIT_ZONE_Y } from "../apps/web/src/game/constants";
+import { HIT_ZONE_Y, LANE_CONFIG, LANE_KEYS, LANE_LABELS } from "../apps/web/src/game/constants";
+
+describe("Final Lane Order & Keyboard Mapping", () => {
+  test("centralizes LEFT -> DOWN -> UP -> RIGHT order and Arrow key mapping", () => {
+    expect(LANE_CONFIG.map((lane) => lane.id)).toEqual(["left", "down", "up", "right"]);
+    expect(LANE_KEYS).toEqual(["ArrowLeft", "ArrowDown", "ArrowUp", "ArrowRight"]);
+    expect(LANE_LABELS).toEqual(["←", "↓", "↑", "→"]);
+
+    const pressedLanes: number[] = [];
+    const releasedLanes: number[] = [];
+    const input = new InputHandler({
+      onLanePress: (lane) => pressedLanes.push(lane),
+      onLaneRelease: (lane) => releasedLanes.push(lane)
+    });
+
+    expect(input.getLaneForKey("ArrowLeft")).toBe(0);
+    expect(input.getLaneForKey("ArrowDown")).toBe(1);
+    expect(input.getLaneForKey("ArrowUp")).toBe(2);
+    expect(input.getLaneForKey("ArrowRight")).toBe(3);
+
+    input.triggerPress(input.getLaneForKey("ArrowLeft") ?? -1);
+    input.triggerPress(input.getLaneForKey("ArrowDown") ?? -1);
+    input.triggerPress(input.getLaneForKey("ArrowUp") ?? -1);
+    input.triggerPress(input.getLaneForKey("ArrowRight") ?? -1);
+    expect(pressedLanes).toEqual([0, 1, 2, 3]);
+
+    input.triggerRelease(1);
+    expect(releasedLanes).toEqual([1]);
+  });
+});
 
 describe("ChartParser", () => {
   test("parses all bundled chart JSON files and sorts notes chronologically", () => {
@@ -32,6 +62,27 @@ describe("ChartParser", () => {
     expect(parsed.notes[0]).toEqual({ time: 1.0, lane: 0, type: "tap" });
     expect(parsed.notes[1]).toEqual({ time: 1.0, lane: 2, type: "tap" });
     expect(parsed.notes[2]).toEqual({ time: 2.0, lane: 3, type: "tap" });
+  });
+
+  test("maps string lane identifiers (left, down, up, right) to final indices 0..3", () => {
+    const chartWithStringLanes = ChartParser.parse({
+      id: "string-lane-test",
+      title: "String Lane Test",
+      artist: "Tester",
+      bpm: 120,
+      audioFile: "",
+      duration: 10,
+      difficulty: "normal",
+      notes: [
+        { time: 1.0, lane: "left", type: "tap" },
+        { time: 1.5, lane: "down", type: "tap" },
+        { time: 2.0, lane: "up", type: "tap" },
+        { time: 2.5, lane: "right", type: "hold", duration: 0.5 }
+      ]
+    });
+
+    expect(chartWithStringLanes.notes.map((note) => note.lane)).toEqual([0, 1, 2, 3]);
+    expect(chartWithStringLanes.notes[3]?.duration).toBe(0.5);
   });
 
   test("rejects invalid chart JSON", () => {
@@ -82,6 +133,39 @@ describe("NoteManager & JudgementEngine", () => {
     const missedLate = manager.update(2.15, 600, HIT_ZONE_Y, judgement.getLateMissThresholdMs());
     expect(missedLate.length).toBe(1);
     expect(missedLate[0]?.lane).toBe(1);
+    expect(manager.areAllNotesJudged()).toBe(true);
+  });
+
+  test("tracks hold notes from hit through sustain duration completion", () => {
+    const manager = new NoteManager();
+    const judgement = new JudgementEngine();
+    const chart = ChartParser.parse({
+      id: "hold-test",
+      title: "Hold Test",
+      artist: "Tester",
+      bpm: 120,
+      audioFile: "",
+      duration: 10,
+      difficulty: "normal",
+      notes: [{ time: 1.0, lane: 1, type: "hold", duration: 0.6 }]
+    });
+
+    manager.loadChart(chart);
+    manager.update(1.0, 600, HIT_ZONE_Y, judgement.getLateMissThresholdMs());
+
+    const head = manager.findCandidateNote(1, 1.0, judgement.getMaxHitWindowMs());
+    expect(head).not.toBeNull();
+    if (head) {
+      manager.markHit(head.id);
+      expect(head.status).toBe("holding");
+    }
+
+    // While still inside sustain duration (1.3s < 1.6s), hold stays active.
+    manager.update(1.3, 600, HIT_ZONE_Y, judgement.getLateMissThresholdMs());
+    expect(manager.areAllNotesJudged()).toBe(false);
+
+    // At end of sustain duration (1.65s >= 1.6s), hold completes.
+    manager.update(1.65, 600, HIT_ZONE_Y, judgement.getLateMissThresholdMs());
     expect(manager.areAllNotesJudged()).toBe(true);
   });
 
@@ -147,4 +231,3 @@ describe("ScoreEngine", () => {
     expect(finalState.accuracy).toBe(91.7);
   });
 });
-
