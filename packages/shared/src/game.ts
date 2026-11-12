@@ -50,16 +50,37 @@ const LaneIndexSchema = z.preprocess((value) => {
   return value;
 }, z.number().int().min(0).max(DEFAULT_GAME_CONFIG.lanesCount - 1));
 
-export const NoteDataSchema = z.object({
-  time: z.number().finite().nonnegative(),
-  lane: LaneIndexSchema,
-  type: NoteTypeSchema,
-  duration: z.number().finite().positive().optional()
-});
+export const NoteDataSchema = z
+  .object({
+    time: z.number().finite().nonnegative(),
+    lane: LaneIndexSchema,
+    type: NoteTypeSchema,
+    duration: z.number().finite().positive().optional()
+  })
+  .superRefine((note, ctx) => {
+    if (note.type === "hold" && (note.duration === undefined || note.duration <= 0)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["duration"],
+        message: "Hold notes must define a positive duration"
+      });
+    }
+    if (note.type === "tap" && note.duration !== undefined) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["duration"],
+        message: "Tap notes must not define a duration"
+      });
+    }
+  });
 
 export const BpmEventSchema = z.object({
   time: z.number().finite().nonnegative(),
-  bpm: z.number().finite().positive()
+  bpm: z
+    .number()
+    .finite()
+    .min(DEFAULT_GAME_CONFIG.minBpm)
+    .max(DEFAULT_GAME_CONFIG.maxBpm)
 });
 
 export const ChartDifficultySchema = z.enum(["easy", "normal", "hard", "expert"]);
@@ -68,13 +89,36 @@ export const ChartFileSchema = z.object({
   id: z.string().min(1),
   title: z.string().min(1),
   artist: z.string().min(1),
-  bpm: z.number().finite().positive(),
+  bpm: z
+    .number()
+    .finite()
+    .min(DEFAULT_GAME_CONFIG.minBpm)
+    .max(DEFAULT_GAME_CONFIG.maxBpm),
+  offsetMs: z.number().finite().min(-2000).max(2000).optional(),
   audioFile: z.string(),
   duration: z.number().finite().positive(),
   difficulty: ChartDifficultySchema,
   notes: z.array(NoteDataSchema).min(1),
   bpmEvents: z.array(BpmEventSchema).optional()
 });
+
+export interface ChartAnalysisReport {
+  chartId: string;
+  difficulty: ChartDifficulty;
+  bpm: number;
+  offsetMs: number;
+  totalNotes: number;
+  chordCount: number;
+  holdCount: number;
+  avgNotesPerSec: number;
+  activeNotesPerSec: number;
+  peakNotesPerSec: number;
+  minGapMs: number;
+  offBeatCount: number;
+  sameLaneConsecutiveCount: number;
+  laneDistribution: [number, number, number, number];
+  warnings: string[];
+}
 
 export type NoteType = z.infer<typeof NoteTypeSchema>;
 export type NoteData = z.infer<typeof NoteDataSchema>;

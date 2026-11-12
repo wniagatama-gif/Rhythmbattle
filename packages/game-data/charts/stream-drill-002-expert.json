@@ -1,0 +1,405 @@
+{
+  "id": "stream-drill-002-expert",
+  "title": "Stream Drill 140 (Overdrive)",
+  "artist": "Rhythm Battle Synth",
+  "bpm": 140,
+  "audioFile": "",
+  "duration": 20,
+  "difficulty": "expert",
+  "notes": [
+    {
+      "time": 0.857,
+      "lane": 0,
+      "type": "tap"
+    },
+    {
+      "time": 1.071,
+      "lane": 1,
+      "type": "tap"
+    },
+    {
+      "time": 1.286,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "time": 1.5,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "time": 1.714,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "time": 1.821,
+      "lane": 1,
+      "type": "tap"
+    },
+    {
+      "time": 1.929,
+      "lane": 0,
+      "type": "tap"
+    },
+    {
+      "time": 2.143,
+      "lane": 1,
+      "type": "tap"
+    },
+    {
+      "time": 2.357,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "time": 2.571,
+      "lane": 0,
+      "type": "tap"
+    },
+    {
+      "time": 2.571,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "time": 2.893,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "time": 3,
+      "lane": 1,
+      "type": "tap"
+    },
+    {
+      "time": 3.214,
+      "lane": 0,
+      "type": "tap"
+    },
+    {
+      "time": 3.429,
+      "lane": 3,
+      "type": "hold",
+      "duration": 0.429
+    },
+    {
+      "time": 4.5,
+      "lane": 0,
+      "type": "tap"
+    },
+    {
+      "time": 4.714,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "time": 4.929,
+      "lane": 1,
+      "type": "tap"
+    },
+    {
+      "time": 5.143,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "time": 5.25,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "time": 5.357,
+      "lane": 1,
+      "type": "tap"
+    },
+    {
+      "time": 5.571,
+      "lane": 0,
+      "type": "tap"
+    },
+    {
+      "time": 5.786,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "time": 6,
+      "lane": 1,
+      "type": "tap"
+    },
+    {
+      "time": 6,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "time": 6.429,
+      "lane": 0,
+      "type": "tap"
+    },
+    {
+      "time": 6.536,
+      "lane": 1,
+      "type": "tap"
+    },
+    {
+      "time": 6.643,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "time": 6.75,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "time": 6.857,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "time": 7.071,
+      "lane": 0,
+      "type": "tap"
+    },
+    {
+      "time": 7.286,
+      "lane": 1,
+      "type": "tap"
+    },
+    {
+      "time": 7.286,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "time": 7.714,
+      "lane": 3,
+      "type": "hold",
+      "duration": 0.429
+    },
+    {
+      "time": 8.786,
+      "lane": 0,
+      "type": "tap"
+    },
+    {
+      "time": 9,
+      "lane": 1,
+      "type": "tap"
+    },
+    {
+      "time": 9.107,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "time": 9.214,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "time": 9.429,
+      "lane": 1,
+      "type": "tap"
+    },
+    {
+      "time": 9.643,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "time": 9.857,
+      "lane": 0,
+      "type": "tap"
+    },
+    {
+      "time": 10.071,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "time": 10.286,
+      "lane": 1,
+      "type": "tap"
+    },
+    {
+      "time": 10.286,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "time": 10.714,
+      "lane": 0,
+      "type": "tap"
+    },
+    {
+      "time": 10.821,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "time": 10.929,
+      "lane": 1,
+      "type": "tap"
+    },
+    {
+      "time": 11.036,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "time": 11.357,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "time": 11.571,
+      "lane": 0,
+      "type": "tap"
+    },
+    {
+      "time": 11.786,
+      "lane": 1,
+      "type": "tap"
+    },
+    {
+      "time": 12,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "time": 12.214,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "time": 12.429,
+      "lane": 0,
+      "type": "tap"
+    },
+    {
+      "time": 12.429,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "time": 13.5,
+      "lane": 0,
+      "type": "tap"
+    },
+    {
+      "time": 13.607,
+      "lane": 1,
+      "type": "tap"
+    },
+    {
+      "time": 13.714,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "time": 13.929,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "time": 14.036,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "time": 14.143,
+      "lane": 1,
+      "type": "tap"
+    },
+    {
+      "time": 14.357,
+      "lane": 0,
+      "type": "tap"
+    },
+    {
+      "time": 14.571,
+      "lane": 1,
+      "type": "tap"
+    },
+    {
+      "time": 14.571,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "time": 15,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "time": 15.107,
+      "lane": 0,
+      "type": "tap"
+    },
+    {
+      "time": 15.214,
+      "lane": 1,
+      "type": "tap"
+    },
+    {
+      "time": 15.321,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "time": 15.643,
+      "lane": 0,
+      "type": "tap"
+    },
+    {
+      "time": 15.857,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "time": 16.071,
+      "lane": 1,
+      "type": "tap"
+    },
+    {
+      "time": 16.286,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "time": 16.5,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "time": 16.714,
+      "lane": 0,
+      "type": "tap"
+    },
+    {
+      "time": 16.929,
+      "lane": 1,
+      "type": "tap"
+    },
+    {
+      "time": 17.143,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "time": 17.571,
+      "lane": 0,
+      "type": "hold",
+      "duration": 0.643
+    },
+    {
+      "time": 17.571,
+      "lane": 3,
+      "type": "hold",
+      "duration": 0.643
+    }
+  ]
+}

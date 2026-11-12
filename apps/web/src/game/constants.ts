@@ -86,9 +86,9 @@ export const MAX_SCROLL_SPEED = 1000;
 
 export const CANVAS_WIDTH = 520;
 export const CANVAS_HEIGHT = 740;
-export const HIT_ZONE_Y = 620;
-export const NOTE_WIDTH = 86;
-export const NOTE_HEIGHT = 86;
+export const HIT_ZONE_Y = 630;
+export const NOTE_WIDTH = 76;
+export const NOTE_HEIGHT = 72;
 export const LANE_COUNT = LANE_CONFIG.length;
 
 export const COUNTDOWN_STEPS = ["3", "2", "1", "BATTLE!"] as const;

@@ -1,0 +1,41 @@
+{
+  "id": "demo-song-001-easy",
+  "title": "Foundation Beat 120 (Easy)",
+  "artist": "Rhythm Battle Synth",
+  "bpm": 120,
+  "audioFile": "",
+  "duration": 22,
+  "difficulty": "easy",
+  "notes": [
+    { "time": 2.0, "lane": 0, "type": "tap" },
+    { "time": 2.5, "lane": 1, "type": "tap" },
+    { "time": 3.0, "lane": 2, "type": "tap" },
+    { "time": 3.5, "lane": 3, "type": "tap" },
+    { "time": 4.5, "lane": 2, "type": "tap" },
+    { "time": 5.0, "lane": 1, "type": "tap" },
+    { "time": 5.5, "lane": 0, "type": "tap" },
+
+    { "time": 7.0, "lane": 1, "type": "tap" },
+    { "time": 7.5, "lane": 2, "type": "tap" },
+    { "time": 8.0, "lane": 3, "type": "tap" },
+    { "time": 8.5, "lane": 2, "type": "tap" },
+    { "time": 9.5, "lane": 0, "type": "tap" },
+    { "time": 10.0, "lane": 1, "type": "tap" },
+    { "time": 10.5, "lane": 3, "type": "tap" },
+
+    { "time": 12.5, "lane": 0, "type": "tap" },
+    { "time": 13.0, "lane": 2, "type": "tap" },
+    { "time": 13.5, "lane": 1, "type": "tap" },
+    { "time": 14.0, "lane": 3, "type": "tap" },
+    { "time": 15.0, "lane": 2, "type": "tap" },
+    { "time": 15.5, "lane": 0, "type": "tap" },
+    { "time": 16.0, "lane": 1, "type": "tap" },
+
+    { "time": 18.0, "lane": 0, "type": "tap" },
+    { "time": 18.5, "lane": 1, "type": "tap" },
+    { "time": 19.0, "lane": 2, "type": "tap" },
+    { "time": 19.5, "lane": 3, "type": "tap" },
+    { "time": 20.0, "lane": 2, "type": "hold", "duration": 0.5 }
+  ]
+}
+

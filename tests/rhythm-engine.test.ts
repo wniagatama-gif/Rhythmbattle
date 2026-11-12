@@ -36,13 +36,41 @@ describe("Final Lane Order & Keyboard Mapping", () => {
   });
 });
 
-describe("ChartParser", () => {
-  test("parses all bundled chart JSON files and sorts notes chronologically", () => {
+describe("ChartParser & Chart Balancing", () => {
+  test("parses all four difficulty charts with balanced density and zero validation warnings", () => {
     const charts = ChartParser.parseList(RAW_CHART_FILES);
-    expect(charts.length).toBe(2);
-    expect(charts[0]?.id).toBe("demo-song-001");
-    expect(charts[1]?.id).toBe("stream-drill-002");
+    expect(charts.length).toBe(4);
+    expect(charts.map((chart) => chart.id)).toEqual([
+      "demo-song-001-easy",
+      "demo-song-001",
+      "stream-drill-002",
+      "stream-drill-002-expert"
+    ]);
+    expect(charts.map((chart) => chart.difficulty)).toEqual([
+      "easy",
+      "normal",
+      "hard",
+      "expert"
+    ]);
 
+    const reports = charts.map((chart) => ChartParser.analyze(chart));
+    for (const report of reports) {
+      expect(report.warnings).toEqual([]);
+      expect(report.offBeatCount).toBe(0);
+    }
+
+    // Verify progressive note density across Easy -> Normal -> Hard -> Expert.
+    expect(reports[0]!.avgNotesPerSec).toBeLessThan(reports[1]!.avgNotesPerSec);
+    expect(reports[1]!.avgNotesPerSec).toBeLessThan(reports[2]!.avgNotesPerSec);
+    expect(reports[2]!.avgNotesPerSec).toBeLessThan(reports[3]!.avgNotesPerSec);
+
+    expect(reports[0]!.minGapMs).toBeGreaterThanOrEqual(400);
+    expect(reports[1]!.minGapMs).toBeGreaterThanOrEqual(250);
+    expect(reports[2]!.minGapMs).toBeGreaterThanOrEqual(200);
+    expect(reports[3]!.minGapMs).toBeGreaterThanOrEqual(100);
+  });
+
+  test("sorts chronological notes on parse", () => {
     const unordered = {
       id: "sort-test",
       title: "Sort Test",
@@ -85,7 +113,7 @@ describe("ChartParser", () => {
     expect(chartWithStringLanes.notes[3]?.duration).toBe(0.5);
   });
 
-  test("rejects invalid chart JSON", () => {
+  test("rejects invalid chart JSON, out-of-bounds notes, duplicate stacks, and overlapping holds", () => {
     expect(() =>
       ChartParser.parse({
         id: "",
@@ -93,6 +121,73 @@ describe("ChartParser", () => {
         notes: [{ time: 1, lane: 9, type: "tap" }]
       })
     ).toThrow();
+
+    expect(() =>
+      ChartParser.parse({
+        id: "oob-note",
+        title: "Out of Bounds",
+        artist: "Tester",
+        bpm: 120,
+        audioFile: "",
+        duration: 5,
+        difficulty: "easy",
+        notes: [{ time: 5.5, lane: 0, type: "tap" }]
+      })
+    ).toThrow(/exceeds song duration/);
+
+    expect(() =>
+      ChartParser.parse({
+        id: "dup-note",
+        title: "Duplicate Stack",
+        artist: "Tester",
+        bpm: 120,
+        audioFile: "",
+        duration: 5,
+        difficulty: "normal",
+        notes: [
+          { time: 1.0, lane: 2, type: "tap" },
+          { time: 1.0, lane: 2, type: "tap" }
+        ]
+      })
+    ).toThrow(/duplicate overlapping note/);
+
+    expect(() =>
+      ChartParser.parse({
+        id: "overlap-hold",
+        title: "Overlap Hold",
+        artist: "Tester",
+        bpm: 120,
+        audioFile: "",
+        duration: 5,
+        difficulty: "normal",
+        notes: [
+          { time: 1.0, lane: 1, type: "hold", duration: 1.0 },
+          { time: 1.5, lane: 1, type: "tap" }
+        ]
+      })
+    ).toThrow(/overlaps previous hold tail/);
+  });
+
+  test("warns on over-dense Easy patterns while still permitting valid chords", () => {
+    const denseEasy = ChartParser.parse({
+      id: "dense-easy",
+      title: "Dense Easy",
+      artist: "Tester",
+      bpm: 120,
+      audioFile: "",
+      duration: 5,
+      difficulty: "easy",
+      notes: [
+        { time: 1.0, lane: 0, type: "tap" },
+        { time: 1.0, lane: 3, type: "tap" },
+        { time: 1.25, lane: 1, type: "tap" },
+        { time: 1.5, lane: 2, type: "tap" }
+      ]
+    });
+
+    const report = ChartParser.analyze(denseEasy);
+    expect(report.chordCount).toBe(1);
+    expect(report.warnings.length).toBeGreaterThanOrEqual(2);
   });
 });
 
