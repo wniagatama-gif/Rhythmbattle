@@ -1,3 +1,4 @@
+import { useEffect, useRef } from "react";
 import { LANE_CONFIG } from "../game/constants";
 
 interface CountdownOverlayProps {
@@ -6,7 +7,26 @@ interface CountdownOverlayProps {
   onCancel: () => void;
 }
 
+const COUNTDOWN_SOUNDS: Record<string, string> = {
+  "3": "/assets/sounds/countdown/introTHREE.ogg",
+  "2": "/assets/sounds/countdown/introTWO.ogg",
+  "1": "/assets/sounds/countdown/introONE.ogg",
+  "BATTLE!": "/assets/sounds/countdown/introGO.ogg",
+  "GO!": "/assets/sounds/countdown/introGO.ogg"
+};
+
 export function CountdownOverlay({ label, trackTitle, onCancel }: CountdownOverlayProps) {
+  const lastSoundRef = useRef<string>("");
+
+  useEffect(() => {
+    const soundUrl = COUNTDOWN_SOUNDS[label];
+    if (soundUrl && soundUrl !== lastSoundRef.current) {
+      lastSoundRef.current = soundUrl;
+      const audio = new Audio(soundUrl);
+      audio.volume = 0.8;
+      audio.play().catch(() => {});
+    }
+  }, [label]);
   return (
     <div
       role="status"

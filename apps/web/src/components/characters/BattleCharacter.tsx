@@ -1,7 +1,8 @@
 import type { CharacterAnimState } from "../../game/types/game";
+import { FnFAnimatedCharacter } from "./FnFAnimatedCharacter";
 
 export interface CharacterModelConfig {
-  renderer: "2d-placeholder" | "glb";
+  renderer: "2d-placeholder" | "glb" | "fnf-atlas";
   modelUrl?: string;
 }
 
@@ -166,7 +167,16 @@ export function BattleCharacter({
           transform: state === "idle" ? `translateY(${beatOffsetPx}px)` : undefined
         }}
       >
-        {useGlbPlaceholder ? (
+        {modelConfig.renderer === "fnf-atlas" ? (
+          <FnFAnimatedCharacter
+            character={isPlayer ? "bf" : "spooky"}
+            state={state}
+            facing={facing}
+            width={compact ? 140 : 220}
+            height={compact ? 170 : 250}
+            beatPhase={beatPhase}
+          />
+        ) : useGlbPlaceholder ? (
           <div
             data-glb-model-url={modelConfig.modelUrl}
             className="w-40 h-52 rounded-xl border-2 border-[#475569] bg-[#141824] flex items-center justify-center text-xs text-[#CBD5E1]"

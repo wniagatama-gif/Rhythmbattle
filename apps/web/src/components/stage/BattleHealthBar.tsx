@@ -24,9 +24,14 @@ export function BattleHealthBar({
     <div
       role="region"
       aria-label="Battle health bar"
-      className="w-full max-w-2xl mx-auto flex items-center gap-2.5"
+      className="w-full max-w-2xl mx-auto flex items-center gap-2"
     >
-      <CharacterAvatarIcon role="player" size={38} />
+      {/* Official FNF Boyfriend Health Icon */}
+      <img
+        src="/assets/images/icons/icon-bf.png"
+        alt={`${playerName} icon`}
+        className="w-10 h-10 object-cover object-left shrink-0 drop-shadow-[0_2px_4px_rgba(0,0,0,0.6)]"
+      />
 
       <div className="flex-1 min-w-0">
         <div className="flex items-center justify-between text-[11px] font-bold uppercase tracking-wider mb-1 px-0.5">
@@ -51,7 +56,12 @@ export function BattleHealthBar({
         </div>
       </div>
 
-      <CharacterAvatarIcon role="opponent" size={38} />
+      {/* Official FNF Spooky Kids Health Icon */}
+      <img
+        src="/assets/images/icons/icon-spooky.png"
+        alt={`${opponentName} icon`}
+        className="w-10 h-10 object-cover object-right shrink-0 drop-shadow-[0_2px_4px_rgba(0,0,0,0.6)]"
+      />
     </div>
   );
 }

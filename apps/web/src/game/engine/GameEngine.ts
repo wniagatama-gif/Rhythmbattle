@@ -15,6 +15,8 @@ import type { ChartFile } from "../types/chart";
 import type { GamePhase, GameSnapshot, JudgementResult, NoteObject } from "../types/game";
 import { AudioEngine } from "./AudioEngine";
 import { ChartParser } from "./ChartParser";
+import { getCachedFnFAssets, loadFnFAssets, type FnFAssets } from "./FnFAssetLoader";
+import { drawAtlasFrame, getAtlasFrame, NOTE_ATLAS_MAP } from "./FnFNoteRenderer";
 import { InputHandler } from "./InputHandler";
 import { JudgementEngine } from "./JudgementEngine";
 import { NoteManager } from "./NoteManager";
@@ -57,12 +59,23 @@ export class GameEngine {
   private listener: GameSnapshotListener | null = null;
   private pvpBridge: PvpEngineBridge | null = null;
 
+  private fnfAssets: FnFAssets | null = null;
+
   constructor(listener?: GameSnapshotListener) {
     this.listener = listener ?? null;
     this.input = new InputHandler({
       onLanePress: (lane) => this.handleLanePress(lane),
       onLaneRelease: (lane) => this.handleLaneRelease(lane)
     });
+    this.fnfAssets = getCachedFnFAssets();
+    if (!this.fnfAssets) {
+      void loadFnFAssets().then((assets) => {
+        this.fnfAssets = assets;
+        this.renderFrame();
+      }).catch(() => {
+        // Fallback to vector arrows if loading fails
+      });
+    }
   }
 
   setListener(listener: GameSnapshotListener | null): void {
@@ -534,17 +547,39 @@ export class GameEngine {
       const isActive = this.activeLanes[lane] ?? false;
       const receptorSize = isActive ? NOTE_WIDTH * 0.94 : NOTE_WIDTH;
 
-      this.drawArrowShape(
-        ctx,
-        centerX,
-        HIT_ZONE_Y,
-        receptorSize,
-        laneDef.rotationDeg,
-        isActive ? laneDef.darkColor : "#141824",
-        isActive ? laneDef.color : "#475569",
-        isActive ? 4 : 3,
-        isActive ? laneDef.color : undefined
-      );
+      const mapping = NOTE_ATLAS_MAP[lane];
+      const atlas = this.fnfAssets?.noteAtlas;
+      const image = this.fnfAssets?.noteAtlasImage;
+      const receptorFrame = atlas && mapping
+        ? (isActive
+            ? getAtlasFrame(atlas, mapping.confirmPrefix, 0) ?? getAtlasFrame(atlas, mapping.pressPrefix, 0)
+            : getAtlasFrame(atlas, mapping.staticPrefix, 0))
+        : undefined;
+
+      if (receptorFrame && image) {
+        drawAtlasFrame(
+          ctx,
+          image,
+          receptorFrame,
+          centerX,
+          HIT_ZONE_Y,
+          receptorSize,
+          receptorSize,
+          isActive ? 0 : laneDef.rotationDeg
+        );
+      } else {
+        this.drawArrowShape(
+          ctx,
+          centerX,
+          HIT_ZONE_Y,
+          receptorSize,
+          laneDef.rotationDeg,
+          isActive ? laneDef.darkColor : "#141824",
+          isActive ? laneDef.color : "#475569",
+          isActive ? 4 : 3,
+          isActive ? laneDef.color : undefined
+        );
+      }
     }
 
     const visibleNotes = this.notes.getVisibleNotes(CANVAS_HEIGHT, this.scrollSpeed);
@@ -564,17 +599,38 @@ export class GameEngine {
       }
       const centerX = note.lane * laneWidth + laneWidth / 2;
       const headY = note.status === "holding" ? HIT_ZONE_Y : note.y;
-      this.drawArrowShape(
-        ctx,
-        centerX,
-        headY,
-        NOTE_WIDTH,
-        laneDef.rotationDeg,
-        laneDef.color,
-        "#090B10",
-        3.5,
-        "rgba(255, 255, 255, 0.30)"
-      );
+
+      const mapping = NOTE_ATLAS_MAP[note.lane];
+      const atlas = this.fnfAssets?.noteAtlas;
+      const image = this.fnfAssets?.noteAtlasImage;
+      const noteFrame = atlas && mapping
+        ? getAtlasFrame(atlas, mapping.notePrefix, 0)
+        : undefined;
+
+      if (noteFrame && image) {
+        drawAtlasFrame(
+          ctx,
+          image,
+          noteFrame,
+          centerX,
+          headY,
+          NOTE_WIDTH,
+          NOTE_HEIGHT,
+          0
+        );
+      } else {
+        this.drawArrowShape(
+          ctx,
+          centerX,
+          headY,
+          NOTE_WIDTH,
+          laneDef.rotationDeg,
+          laneDef.color,
+          "#090B10",
+          3.5,
+          "rgba(255, 255, 255, 0.30)"
+        );
+      }
     }
 
     this.drawLaneEffects(ctx, laneWidth);

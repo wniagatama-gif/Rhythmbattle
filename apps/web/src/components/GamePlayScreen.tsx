@@ -270,25 +270,50 @@ export function GamePlayScreen({
     >
       {/* FNF-Inspired Concert Stage Backdrop */}
       <div aria-hidden="true" className="pointer-events-none absolute inset-0 overflow-hidden">
-        {/* Overhead Stage Truss & Spotlights */}
-        <div className="absolute inset-x-0 top-14 h-5 bg-[#111522] border-y-2 border-[#090B10]" />
+        {/* Official FNF Stage Back Texture */}
         <div
-          className="hidden md:block absolute left-[14%] top-16 w-48 h-72 opacity-20"
+          className="absolute inset-0 bg-cover bg-center opacity-70"
+          style={{ backgroundImage: "url('/assets/images/stage/stageback.png')" }}
+        />
+        {/* Official FNF Stage Curtains Overlay */}
+        <div
+          className="absolute inset-0 bg-cover bg-top opacity-85"
+          style={{ backgroundImage: "url('/assets/images/stage/stagecurtains.png')" }}
+        />
+        {/* Stage Lights Accent */}
+        <img
+          src="/assets/images/stage/stage_light.png"
+          alt=""
+          className="hidden md:block absolute left-8 top-16 w-36 opacity-40 pointer-events-none"
+        />
+        <img
+          src="/assets/images/stage/stage_light.png"
+          alt=""
+          className="hidden md:block absolute right-8 top-16 w-36 -scale-x-100 opacity-40 pointer-events-none"
+        />
+
+        {/* Overhead Stage Truss & Spotlights */}
+        <div className="absolute inset-x-0 top-14 h-5 bg-[#111522]/90 border-y-2 border-[#090B10]" />
+        <div
+          className="hidden md:block absolute left-[14%] top-16 w-48 h-72 opacity-25"
           style={{
             background: "linear-gradient(180deg, #E11D48 0%, transparent 100%)",
             clipPath: "polygon(35% 0%, 65% 0%, 100% 100%, 0% 100%)"
           }}
         />
         <div
-          className="hidden md:block absolute right-[14%] top-16 w-48 h-72 opacity-20"
+          className="hidden md:block absolute right-[14%] top-16 w-48 h-72 opacity-25"
           style={{
             background: "linear-gradient(180deg, #0284C7 0%, transparent 100%)",
             clipPath: "polygon(35% 0%, 65% 0%, 100% 100%, 0% 100%)"
           }}
         />
 
-        {/* Stage Floor */}
-        <div className="absolute inset-x-0 bottom-0 h-[33%] bg-[#141824] border-t-4 border-[#090B10]" />
+        {/* Official FNF Stage Front Platform */}
+        <div
+          className="absolute inset-x-0 bottom-0 h-[34%] bg-cover bg-top border-t-4 border-[#090B10]"
+          style={{ backgroundImage: "url('/assets/images/stage/stagefront.png')" }}
+        />
 
         {/* Left & Right Beat-Synced Speaker Stacks */}
         <div
@@ -439,11 +464,12 @@ export function GamePlayScreen({
 
           <BattleCharacter
             role="player"
-            name={pvpContext?.selfPlayer?.playerName ?? "Challenger"}
+            name={pvpContext?.selfPlayer?.playerName ?? "Boyfriend"}
             title="Player 1"
             state={playerState}
             facing="right"
             beatPhase={beatPhase}
+            modelConfig={{ renderer: "fnf-atlas" }}
           />
         </div>
 
@@ -561,11 +587,12 @@ export function GamePlayScreen({
         <div className="hidden md:flex md:col-span-3 lg:col-span-4 flex-col items-center justify-end pb-6">
           <BattleCharacter
             role="opponent"
-            name={pvpContext?.opponentPlayer?.playerName ?? chart.artist}
+            name={pvpContext?.opponentPlayer?.playerName ?? "Spooky Kids"}
             title={isPvp ? "Player 2 (Online)" : "Opponent"}
             state={opponentState}
             facing="left"
             beatPhase={beatPhase}
+            modelConfig={{ renderer: "fnf-atlas" }}
           />
         </div>
       </div>
