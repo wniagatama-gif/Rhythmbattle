@@ -535,52 +535,6 @@ export function GamePlayScreen({
               />
             </div>
           </div>
-
-          {/* Interactive Lane Controls (Always LEFT -> DOWN -> UP -> RIGHT) */}
-          <div
-            className="w-full max-w-[440px] grid grid-cols-4 gap-2 shrink-0"
-            aria-label="Touch and pointer lane controls"
-          >
-            {LANE_CONFIG.map((laneDef) => {
-              const isActive = activeLanes[laneDef.index] ?? false;
-              return (
-                <button
-                  key={laneDef.id}
-                  type="button"
-                  aria-label={`Lane ${laneDef.direction}`}
-                  onPointerDown={(e) => {
-                    e.preventDefault();
-                    onLanePress(laneDef.index);
-                  }}
-                  onPointerUp={() => onLaneRelease(laneDef.index)}
-                  onPointerLeave={() => onLaneRelease(laneDef.index)}
-                  onPointerCancel={() => onLaneRelease(laneDef.index)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" || e.key === " ") {
-                      e.preventDefault();
-                      if (!e.repeat) {
-                        onLanePress(laneDef.index);
-                      }
-                    }
-                  }}
-                  onKeyUp={(e) => {
-                    if (e.key === "Enter" || e.key === " ") {
-                      e.preventDefault();
-                      onLaneRelease(laneDef.index);
-                    }
-                  }}
-                  style={{
-                    backgroundColor: isActive ? laneDef.color : "#141824",
-                    color: isActive ? laneDef.textColorOnFill : laneDef.textColorOnDark
-                  }}
-                  className="min-h-[44px] py-1.5 rounded-md border-2 border-[#090B10] shadow-[0_3px_0_#05070B] flex items-center justify-center gap-1.5 font-extrabold text-sm touch-manipulation transition-transform active:translate-y-0.5"
-                >
-                  <span className="text-base leading-none">{laneDef.symbol}</span>
-                  <span className="text-[11px] tracking-wide">{laneDef.direction}</span>
-                </button>
-              );
-            })}
-          </div>
         </div>
 
         {/* Player 2 / Opponent Side (Right, Facing Left) */}

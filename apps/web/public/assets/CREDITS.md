@@ -16,6 +16,8 @@ This project integrates official assets and animation pipelines from the officia
      - **HUD / Health Bar**: `healthBar.png`, `icon-bf.png`, `icon-spooky.png`, `icon-dad.png`
      - **Note Highway**: `NOTE_assets.png`, `NOTE_assets.xml` (Sparrow v2 atlas receptors, notes, holds, and confirms)
      - **Characters**: `BOYFRIEND.png` + `BOYFRIEND.xml`, `SpookyKids.png` + `SpookyKids.xml` (full Sparrow v2 sprite sheet animations)
+     - **Menu Graphics**: `menuBG.png`, `menuBGMagenta.png`, `menuDesat.png`, `logoBumpin.png`, `storymode.png`, `freeplay.png`, `options.png`, `freeplayeasy.png`, `freeplaynormal.png`, `freeplayhard.png`
+     - **Menu Audio & Music**: `freakyMenu.ogg` (official FNF menu theme), `scrollMenu.ogg`, `confirmMenu.ogg`, `cancelMenu.ogg`
      - **Audio**: Official countdown voiceover (`introTHREE.ogg`, `introTWO.ogg`, `introONE.ogg`, `introGO.ogg`) and miss note sound effects (`missnote1.ogg`, `missnote2.ogg`, `missnote3.ogg`)
 
 ## License Notice

@@ -1,6 +1,8 @@
+import { useEffect } from "react";
 import type { ChartFile } from "../game/types/chart";
 import type { ScoreState } from "../game/types/game";
 import { BattleCharacter } from "./characters/BattleCharacter";
+import { AudioManager } from "../game/engine/AudioManager";
 
 interface ResultScreenProps {
   chart: ChartFile;
@@ -18,117 +20,161 @@ export function ResultScreen({
   onBackToList
 }: ResultScreenProps) {
   const isVictory = scoreState.accuracy >= 60;
+  const audio = AudioManager.getInstance();
+
+  useEffect(() => {
+    audio.playMenuMusic();
+  }, [audio]);
+
+  const handlePlayAgain = (): void => {
+    audio.playConfirm();
+    audio.stopMenuMusic();
+    onPlayAgain();
+  };
+
+  const handleBack = (): void => {
+    audio.playCancel();
+    onBackToList();
+  };
 
   return (
-    <section aria-labelledby="result-heading" className="max-w-4xl w-full mx-auto">
-      <div className="p-6 sm:p-8 rounded-xl bg-[#141824] border-2 border-[#090B10] shadow-[0_8px_0_#05070B] space-y-6">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b-2 border-[#1E2436] pb-5">
-          <div className="space-y-1">
-            <div className="flex items-center gap-2 flex-wrap">
-              <span
-                className={`px-2.5 py-0.5 rounded border border-[#090B10] text-xs font-black uppercase ${
-                  isVictory ? "bg-[#34D399] text-[#090B10]" : "bg-[#FB7185] text-[#090B10]"
-                }`}
-              >
-                {isVictory ? "Stage Clear" : "Stage Failed"}
-              </span>
-              {isNewBest && (
-                <span className="px-2.5 py-0.5 rounded border border-[#090B10] bg-[#FBBF24] text-[#090B10] text-xs font-black uppercase">
-                  New Best Score
+    <div className="relative min-h-dvh w-full overflow-hidden flex flex-col justify-between select-none">
+      {/* Background */}
+      <div
+        className="absolute inset-0 bg-cover bg-center filter hue-rotate-[280deg] brightness-90"
+        style={{ backgroundImage: "url('/assets/images/menu/menuDesat.png')" }}
+      />
+      <div className="absolute inset-0 bg-black/55 backdrop-blur-[2px]" />
+
+      {/* Header */}
+      <header className="relative z-10 pt-6 px-6 max-w-4xl mx-auto w-full flex items-center justify-between">
+        <h2 className="text-3xl sm:text-4xl font-black italic tracking-wider text-white uppercase drop-shadow-[0_4px_0_#000]">
+          STAGE RESULTS
+        </h2>
+        <span
+          className={`px-4 py-1.5 rounded-xl text-sm font-black uppercase italic shadow-[0_4px_0_#000] ${
+            isVictory ? "bg-[#34D399] text-black" : "bg-[#E11D48] text-white"
+          }`}
+        >
+          {isVictory ? "STAGE CLEARED!" : "STAGE FAILED!"}
+        </span>
+      </header>
+
+      {/* Main Card */}
+      <main className="relative z-10 my-auto py-6 px-4 sm:px-8 max-w-4xl mx-auto w-full">
+        <div className="bg-black/85 border-4 border-[#FDE047] shadow-[0_8px_0_#000] rounded-2xl p-6 sm:p-8 space-y-6 transform -skew-x-2">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 border-b-2 border-white/10 pb-5">
+            <div>
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="px-2.5 py-0.5 rounded bg-[#E11D48] text-white text-xs font-black uppercase">
+                  {chart.difficulty}
                 </span>
-              )}
+                {isNewBest && (
+                  <span className="px-2.5 py-0.5 rounded bg-[#FDE047] text-black text-xs font-black uppercase">
+                    NEW PERSONAL BEST!
+                  </span>
+                )}
+              </div>
+              <h3 className="text-3xl font-black italic text-white uppercase mt-1">
+                {chart.title}
+              </h3>
+              <p className="text-xs font-semibold text-gray-300">
+                vs {chart.artist} | {chart.bpm} BPM
+              </p>
             </div>
-            <h2 id="result-heading" className="text-2xl sm:text-3xl font-black text-[#F8FAFC]">
-              {chart.title}
-            </h2>
-            <p className="text-sm font-semibold text-[#CBD5E1]">
-              vs {chart.artist} | {chart.bpm} BPM | {chart.difficulty.toUpperCase()}
-            </p>
+
+            <div className="flex justify-center shrink-0">
+              <BattleCharacter
+                role="player"
+                name="Boyfriend"
+                state={isVictory ? "victory" : "defeat"}
+                facing="right"
+                compact
+              />
+            </div>
           </div>
 
-          <div className="flex justify-center shrink-0">
-            <BattleCharacter
-              role="player"
-              name="Challenger"
-              state={isVictory ? "victory" : "defeat"}
-              facing="right"
-              compact
-            />
+          {/* Stats Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 tabular-nums">
+            <div className="p-4 rounded-xl bg-black/60 border-2 border-white/20 text-center">
+              <span className="text-xs font-black uppercase text-gray-400">Total Score</span>
+              <p className="text-3xl font-black text-[#FDE047] mt-1">
+                {scoreState.score.toLocaleString()}
+              </p>
+            </div>
+
+            <div className="p-4 rounded-xl bg-black/60 border-2 border-white/20 text-center">
+              <span className="text-xs font-black uppercase text-gray-400">Accuracy</span>
+              <p className="text-3xl font-black text-[#34D399] mt-1">
+                {scoreState.accuracy.toFixed(1)}%
+              </p>
+            </div>
+
+            <div className="p-4 rounded-xl bg-black/60 border-2 border-white/20 text-center">
+              <span className="text-xs font-black uppercase text-gray-400">Max Combo</span>
+              <p className="text-3xl font-black text-[#38BDF8] mt-1">
+                {scoreState.maxCombo}x
+              </p>
+            </div>
+          </div>
+
+          {/* Breakdown */}
+          <div className="space-y-2 pt-2 border-t border-white/10">
+            <span className="text-xs font-black uppercase tracking-wider text-[#FDE047] italic">
+              Judgement Breakdown
+            </span>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 tabular-nums">
+              <div className="p-3 rounded-lg bg-black/60 border border-white/15">
+                <span className="text-xs font-black text-[#FBBF24]">SICK (PERFECT)</span>
+                <p className="text-xl font-black text-white mt-0.5">
+                  {scoreState.counts.PERFECT}
+                </p>
+              </div>
+              <div className="p-3 rounded-lg bg-black/60 border border-white/15">
+                <span className="text-xs font-black text-[#34D399]">GOOD (GREAT)</span>
+                <p className="text-xl font-black text-white mt-0.5">
+                  {scoreState.counts.GREAT}
+                </p>
+              </div>
+              <div className="p-3 rounded-lg bg-black/60 border border-white/15">
+                <span className="text-xs font-black text-[#38BDF8]">BAD (GOOD)</span>
+                <p className="text-xl font-black text-white mt-0.5">
+                  {scoreState.counts.GOOD}
+                </p>
+              </div>
+              <div className="p-3 rounded-lg bg-black/60 border border-white/15">
+                <span className="text-xs font-black text-[#FB7185]">MISS</span>
+                <p className="text-xl font-black text-white mt-0.5">
+                  {scoreState.counts.MISS}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex flex-col sm:flex-row gap-3 pt-2">
+            <button
+              type="button"
+              onClick={handlePlayAgain}
+              className="flex-1 min-h-[50px] px-6 py-3 rounded-xl bg-[#E11D48] hover:bg-[#BE123C] border-2 border-white shadow-[0_4px_0_#000] text-white font-black text-base uppercase italic transition-transform active:translate-y-0.5"
+            >
+              PLAY AGAIN
+            </button>
+            <button
+              type="button"
+              onClick={handleBack}
+              className="flex-1 min-h-[50px] px-6 py-3 rounded-xl bg-gray-800 hover:bg-gray-700 border-2 border-white/30 text-white font-black text-base uppercase italic"
+            >
+              BACK TO FREE PLAY
+            </button>
           </div>
         </div>
+      </main>
 
-        <dl className="grid grid-cols-1 sm:grid-cols-3 gap-4 tabular-nums">
-          <div className="p-4 rounded-lg bg-[#0B0D14] border-2 border-[#090B10]">
-            <dt className="text-xs font-bold uppercase text-[#CBD5E1]">Final Score</dt>
-            <dd className="text-3xl font-black text-[#F8FAFC] mt-1">
-              {scoreState.score.toLocaleString()}
-            </dd>
-          </div>
-
-          <div className="p-4 rounded-lg bg-[#0B0D14] border-2 border-[#090B10]">
-            <dt className="text-xs font-bold uppercase text-[#CBD5E1]">Accuracy</dt>
-            <dd className="text-3xl font-black text-[#34D399] mt-1">
-              {scoreState.accuracy.toFixed(1)}%
-            </dd>
-          </div>
-
-          <div className="p-4 rounded-lg bg-[#0B0D14] border-2 border-[#090B10]">
-            <dt className="text-xs font-bold uppercase text-[#CBD5E1]">Max Combo</dt>
-            <dd className="text-3xl font-black text-[#FBBF24] mt-1">
-              {scoreState.maxCombo}
-            </dd>
-          </div>
-        </dl>
-
-        <div className="space-y-3">
-          <h3 className="text-sm font-extrabold uppercase tracking-wider text-[#F8FAFC]">
-            Judgement Breakdown
-          </h3>
-          <dl className="grid grid-cols-2 sm:grid-cols-4 gap-3 tabular-nums">
-            <div className="p-3 rounded-lg bg-[#0B0D14] border-2 border-[#090B10]">
-              <dt className="text-xs font-extrabold text-[#FBBF24]">PERFECT (SICK)</dt>
-              <dd className="text-xl font-black text-[#F8FAFC] mt-1">
-                {scoreState.counts.PERFECT}
-              </dd>
-            </div>
-            <div className="p-3 rounded-lg bg-[#0B0D14] border-2 border-[#090B10]">
-              <dt className="text-xs font-extrabold text-[#34D399]">GREAT (GOOD)</dt>
-              <dd className="text-xl font-black text-[#F8FAFC] mt-1">
-                {scoreState.counts.GREAT}
-              </dd>
-            </div>
-            <div className="p-3 rounded-lg bg-[#0B0D14] border-2 border-[#090B10]">
-              <dt className="text-xs font-extrabold text-[#38BDF8]">GOOD (BAD)</dt>
-              <dd className="text-xl font-black text-[#F8FAFC] mt-1">
-                {scoreState.counts.GOOD}
-              </dd>
-            </div>
-            <div className="p-3 rounded-lg bg-[#0B0D14] border-2 border-[#090B10]">
-              <dt className="text-xs font-extrabold text-[#FB7185]">MISS</dt>
-              <dd className="text-xl font-black text-[#F8FAFC] mt-1">
-                {scoreState.counts.MISS}
-              </dd>
-            </div>
-          </dl>
-        </div>
-
-        <div className="flex flex-col sm:flex-row gap-3 pt-2">
-          <button
-            type="button"
-            onClick={onPlayAgain}
-            className="flex-1 min-h-[48px] px-5 py-3 rounded-lg bg-[#BE123C] hover:bg-[#9F1239] border-2 border-[#090B10] shadow-[0_4px_0_#05070B] text-white font-black uppercase text-sm transition-colors"
-          >
-            Replay Battle
-          </button>
-          <button
-            type="button"
-            onClick={onBackToList}
-            className="flex-1 min-h-[48px] px-5 py-3 rounded-lg bg-[#1E2436] hover:bg-[#2A334B] border-2 border-[#090B10] shadow-[0_4px_0_#05070B] text-[#F8FAFC] font-extrabold uppercase text-sm transition-colors"
-          >
-            Back to Stage Select
-          </button>
-        </div>
-      </div>
-    </section>
+      {/* Footer */}
+      <footer className="relative z-10 pb-5 text-center text-xs font-black text-white drop-shadow-[0_2px_0_#000]">
+        Practice difficult sections to reach 100% accuracy!
+      </footer>
+    </div>
   );
 }

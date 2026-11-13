@@ -15,6 +15,15 @@ export class InputHandler {
     for (const lane of LANE_CONFIG) {
       this.keyToLane.set(lane.key, lane.index);
     }
+    // Also map DFJK layout (standard FNF keyboard controls)
+    this.keyToLane.set("d", 0);
+    this.keyToLane.set("D", 0);
+    this.keyToLane.set("f", 1);
+    this.keyToLane.set("F", 1);
+    this.keyToLane.set("j", 2);
+    this.keyToLane.set("J", 2);
+    this.keyToLane.set("k", 3);
+    this.keyToLane.set("K", 3);
   }
 
   getLaneForKey(key: string): number | undefined {

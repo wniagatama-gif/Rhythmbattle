@@ -55,6 +55,16 @@ export class GameEngine {
   private countdownLabel = "";
   private lastJudgement: JudgementResult | null = null;
   private activeLanes: boolean[] = [false, false, false, false];
+  private laneReceptorStates: Array<{
+    state: "idle" | "pressed" | "confirm";
+    confirmStart: number;
+    confirmUntil: number;
+  }> = [
+    { state: "idle", confirmStart: 0, confirmUntil: 0 },
+    { state: "idle", confirmStart: 0, confirmUntil: 0 },
+    { state: "idle", confirmStart: 0, confirmUntil: 0 },
+    { state: "idle", confirmStart: 0, confirmUntil: 0 }
+  ];
   private laneEffects: LaneVisualEffect[] = [];
   private listener: GameSnapshotListener | null = null;
   private pvpBridge: PvpEngineBridge | null = null;
@@ -308,6 +318,15 @@ export class GameEngine {
     }
 
     this.activeLanes[lane] = true;
+    const currentRec = this.laneReceptorStates[lane];
+    if (currentRec && currentRec.state !== "confirm") {
+      this.laneReceptorStates[lane] = {
+        state: "pressed",
+        confirmStart: 0,
+        confirmUntil: 0
+      };
+    }
+
     const currentTime = this.audio.getCurrentTime();
     this.pvpBridge?.onNoteAttempt(lane, currentTime);
 
@@ -323,6 +342,11 @@ export class GameEngine {
       this.lastJudgement = result;
       this.score.apply(result);
       if (result.type !== "MISS") {
+        this.laneReceptorStates[lane] = {
+          state: "confirm",
+          confirmStart: performance.now(),
+          confirmUntil: performance.now() + 190
+        };
         this.audio.playHitCue(lane);
         this.pushLaneEffect(lane, "hit");
       } else {
@@ -339,10 +363,20 @@ export class GameEngine {
       return;
     }
     this.activeLanes[lane] = false;
+    const rec = this.laneReceptorStates[lane];
+    if (rec && rec.state === "pressed") {
+      rec.state = "idle";
+    }
+
     if (this.phase === "playing") {
       const currentTime = this.audio.getCurrentTime();
       const completed = this.notes.releaseHold(lane, currentTime);
       if (completed) {
+        this.laneReceptorStates[lane] = {
+          state: "confirm",
+          confirmStart: performance.now(),
+          confirmUntil: performance.now() + 150
+        };
         this.pushLaneEffect(lane, "hit");
       }
     }
@@ -424,6 +458,51 @@ export class GameEngine {
     const tailEndY = note.y + sustainLength;
     const visibleHeight = tailEndY - headY;
     if (visibleHeight <= 2) {
+      return;
+    }
+
+    const mapping = NOTE_ATLAS_MAP[note.lane];
+    const atlas = this.fnfAssets?.noteAtlas;
+    const image = this.fnfAssets?.noteAtlasImage;
+    const pieceFrame = atlas && mapping ? getAtlasFrame(atlas, mapping.holdPiecePrefix, 0) : undefined;
+    const endFrame = atlas && mapping ? getAtlasFrame(atlas, mapping.holdEndPrefix, 0) : undefined;
+
+    if (pieceFrame && endFrame && image) {
+      const pieceWidth = NOTE_WIDTH * 0.44;
+      const endHeight = NOTE_HEIGHT * 0.45;
+      const bodyHeight = Math.max(0, visibleHeight - endHeight);
+
+      if (bodyHeight > 0) {
+        ctx.save();
+        ctx.globalAlpha = note.status === "holding" ? 0.95 : 0.75;
+        ctx.drawImage(
+          image,
+          pieceFrame.x,
+          pieceFrame.y,
+          pieceFrame.width,
+          pieceFrame.height,
+          centerX - pieceWidth / 2,
+          headY,
+          pieceWidth,
+          bodyHeight
+        );
+        ctx.restore();
+      }
+
+      ctx.save();
+      ctx.globalAlpha = note.status === "holding" ? 0.95 : 0.75;
+      ctx.drawImage(
+        image,
+        endFrame.x,
+        endFrame.y,
+        endFrame.width,
+        endFrame.height,
+        centerX - pieceWidth / 2,
+        headY + bodyHeight,
+        pieceWidth,
+        endHeight
+      );
+      ctx.restore();
       return;
     }
 
@@ -510,6 +589,7 @@ export class GameEngine {
     ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 
     const laneWidth = CANVAS_WIDTH / LANE_COUNT;
+    const now = performance.now();
 
     for (const laneDef of LANE_CONFIG) {
       const lane = laneDef.index;
@@ -544,17 +624,43 @@ export class GameEngine {
     for (const laneDef of LANE_CONFIG) {
       const lane = laneDef.index;
       const centerX = lane * laneWidth + laneWidth / 2;
-      const isActive = this.activeLanes[lane] ?? false;
-      const receptorSize = isActive ? NOTE_WIDTH * 0.94 : NOTE_WIDTH;
+      const isKeyHeld = this.activeLanes[lane] ?? false;
+      const rec = this.laneReceptorStates[lane];
+
+      let laneState: "idle" | "pressed" | "confirm" = "idle";
+      if (rec && rec.state === "confirm") {
+        if (now <= rec.confirmUntil) {
+          laneState = "confirm";
+        } else {
+          rec.state = isKeyHeld ? "pressed" : "idle";
+          laneState = rec.state;
+        }
+      } else if (isKeyHeld) {
+        laneState = "pressed";
+      }
 
       const mapping = NOTE_ATLAS_MAP[lane];
       const atlas = this.fnfAssets?.noteAtlas;
       const image = this.fnfAssets?.noteAtlasImage;
-      const receptorFrame = atlas && mapping
-        ? (isActive
-            ? getAtlasFrame(atlas, mapping.confirmPrefix, 0) ?? getAtlasFrame(atlas, mapping.pressPrefix, 0)
-            : getAtlasFrame(atlas, mapping.staticPrefix, 0))
-        : undefined;
+
+      let receptorFrame: import("./SparrowAtlas").SparrowFrame | undefined;
+      let receptorSize = NOTE_WIDTH;
+
+      if (atlas && mapping) {
+        if (laneState === "confirm") {
+          const elapsed = now - (rec?.confirmStart ?? now);
+          const frameIdx = Math.max(0, Math.floor(elapsed / 45));
+          receptorFrame = getAtlasFrame(atlas, mapping.confirmPrefix, frameIdx) ??
+            getAtlasFrame(atlas, mapping.pressPrefix, 0);
+          receptorSize = NOTE_WIDTH * 1.1;
+        } else if (laneState === "pressed") {
+          receptorFrame = getAtlasFrame(atlas, mapping.pressPrefix, 0);
+          receptorSize = NOTE_WIDTH * 0.94;
+        } else {
+          receptorFrame = getAtlasFrame(atlas, mapping.staticPrefix, 0);
+          receptorSize = NOTE_WIDTH;
+        }
+      }
 
       if (receptorFrame && image) {
         drawAtlasFrame(
@@ -565,7 +671,7 @@ export class GameEngine {
           HIT_ZONE_Y,
           receptorSize,
           receptorSize,
-          isActive ? 0 : laneDef.rotationDeg
+          0 // FNF atlas receptors are already oriented correctly
         );
       } else {
         this.drawArrowShape(
@@ -574,10 +680,10 @@ export class GameEngine {
           HIT_ZONE_Y,
           receptorSize,
           laneDef.rotationDeg,
-          isActive ? laneDef.darkColor : "#141824",
-          isActive ? laneDef.color : "#475569",
-          isActive ? 4 : 3,
-          isActive ? laneDef.color : undefined
+          laneState !== "idle" ? laneDef.darkColor : "#141824",
+          laneState !== "idle" ? laneDef.color : "#475569",
+          laneState !== "idle" ? 4 : 3,
+          laneState !== "idle" ? laneDef.color : undefined
         );
       }
     }
@@ -616,7 +722,7 @@ export class GameEngine {
           headY,
           NOTE_WIDTH,
           NOTE_HEIGHT,
-          0
+          0 // FNF atlas notes are already oriented correctly
         );
       } else {
         this.drawArrowShape(
