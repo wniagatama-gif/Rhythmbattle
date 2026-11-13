@@ -14,6 +14,7 @@
       "version": "0.1.0",
       "dependencies": {
         "@elysiajs/cors": "^1.1.1",
+        "@rhythm-battle/game-data": "workspace:*",
         "@rhythm-battle/shared": "workspace:*",
         "drizzle-orm": "^0.36.4",
         "elysia": "^1.1.25",

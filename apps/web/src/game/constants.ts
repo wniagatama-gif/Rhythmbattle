@@ -86,7 +86,8 @@ export const MAX_SCROLL_SPEED = 1000;
 
 export const CANVAS_WIDTH = 520;
 export const CANVAS_HEIGHT = 740;
-export const HIT_ZONE_Y = 630;
+// Receptor sits at the top of the highway for FNF-style bottom-to-top scrolling.
+export const HIT_ZONE_Y = 108;
 export const NOTE_WIDTH = 76;
 export const NOTE_HEIGHT = 72;
 export const LANE_COUNT = LANE_CONFIG.length;

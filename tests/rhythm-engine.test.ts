@@ -211,14 +211,14 @@ describe("NoteManager & JudgementEngine", () => {
 
     manager.loadChart(chart);
 
-    // At t = 0.5s with scrollSpeed = 600 px/s, note at t = 1.0s should be 300px above HIT_ZONE_Y.
+    // Bottom-to-top: at t = 0.5s with scrollSpeed = 600 px/s, note at t = 1.0s sits 300px below HIT_ZONE_Y.
     const missedEarly = manager.update(0.5, 600, HIT_ZONE_Y, judgement.getLateMissThresholdMs());
     expect(missedEarly.length).toBe(0);
 
     const candidate = manager.findCandidateNote(0, 1.02, judgement.getMaxHitWindowMs());
     expect(candidate).not.toBeNull();
     if (candidate) {
-      expect(candidate.y).toBeCloseTo(HIT_ZONE_Y - 300, 1);
+      expect(candidate.y).toBeCloseTo(HIT_ZONE_Y + 300, 1);
       const hitResult = judgement.evaluateHit(candidate, 1.02); // +20ms
       expect(hitResult.type).toBe("PERFECT");
       manager.markHit(candidate.id);

@@ -22,8 +22,9 @@ const STATE_TRANSFORM: Record<CharacterAnimState, string> = {
   singDown: "translate-y-2.5 scale-y-[0.94] scale-x-[1.05]",
   singUp: "-translate-y-3 scale-y-[1.05] scale-x-[0.97]",
   singRight: "translate-x-2 rotate-[5deg] scale-[1.03]",
-  hurt: "translate-y-1 rotate-[-8deg] scale-[0.95]",
-  special: "-translate-y-3.5 scale-[1.07]",
+  miss: "translate-y-1.5 rotate-[4deg] scale-[0.97]",
+  hurt: "translate-y-1 rotate-[-9deg] scale-[0.93]",
+  special: "-translate-y-4 scale-[1.09]",
   victory: "-translate-y-2.5 scale-[1.06]",
   defeat: "translate-y-3 rotate-[6deg] scale-[0.93] opacity-75"
 };
@@ -34,6 +35,7 @@ const STATE_ACCENT_COLOR: Record<CharacterAnimState, string> = {
   singDown: "#38BDF8",
   singUp: "#F59E0B",
   singRight: "#A855F7",
+  miss: "#94A3B8",
   hurt: "#FB7185",
   special: "#F59E0B",
   victory: "#34D399",
@@ -140,6 +142,7 @@ export function BattleCharacter({
     state === "singRight" ||
     state === "special";
   const isHurt = state === "hurt" || state === "defeat";
+  const isMiss = state === "miss";
   const accentColor = STATE_ACCENT_COLOR[state];
   const beatOffsetPx = beatPhase % 2 === 0 ? 0 : -4;
 
@@ -333,6 +336,12 @@ export function BattleCharacter({
                       <path d="M96 76 L104 84 M104 76 L96 84" />
                       <path d="M122 76 L130 84 M130 76 L122 84" />
                     </g>
+                  ) : isMiss ? (
+                    <g>
+                      <line x1="95" y1="81" x2="106" y2="81" stroke="#090B10" strokeWidth="4" strokeLinecap="round" />
+                      <line x1="121" y1="81" x2="132" y2="81" stroke="#090B10" strokeWidth="4" strokeLinecap="round" />
+                      <path d="M142 66 Q148 76 142 82 Q136 76 142 66 Z" fill="#38BDF8" stroke="#090B10" strokeWidth="2" />
+                    </g>
                   ) : (
                     <g>
                       <circle cx="102" cy="82" r="4.5" fill="#090B10" />
@@ -353,7 +362,7 @@ export function BattleCharacter({
                   stroke={accentColor !== "transparent" ? accentColor : "#090B10"}
                   strokeWidth="2"
                 />
-              ) : isHurt ? (
+              ) : isHurt || isMiss ? (
                 <path
                   d="M104 104 Q116 96 128 104"
                   stroke="#090B10"

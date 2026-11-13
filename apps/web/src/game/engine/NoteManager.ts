@@ -1,4 +1,4 @@
-import { NOTE_HEIGHT } from "../constants";
+import { CANVAS_HEIGHT, NOTE_HEIGHT } from "../constants";
 import type { ChartFile } from "../types/chart";
 import type { NoteObject } from "../types/game";
 
@@ -8,11 +8,12 @@ export class NoteManager {
   loadChart(chart: ChartFile): void {
     this.notes = chart.notes.map((note, index) => ({
       id: `${chart.id}-note-${index}`,
+      index,
       time: note.time,
       lane: note.lane,
       type: note.type,
       duration: note.duration,
-      y: -NOTE_HEIGHT * 2,
+      y: CANVAS_HEIGHT + NOTE_HEIGHT * 2,
       status: "pending"
     }));
   }
@@ -30,8 +31,9 @@ export class NoteManager {
         continue;
       }
 
+      // Bottom-to-top: future notes (timeDiffSec > 0) sit below hitZoneY and scroll upward.
       const timeDiffSec = note.time - currentTime;
-      note.y = hitZoneY - timeDiffSec * scrollSpeed;
+      note.y = hitZoneY + timeDiffSec * scrollSpeed;
 
       if (note.status === "holding") {
         const endTime = note.time + (note.duration ?? 0);
@@ -41,7 +43,7 @@ export class NoteManager {
         continue;
       }
 
-      if (note.status === "pending" && note.y >= -NOTE_HEIGHT) {
+      if (note.status === "pending" && note.y <= CANVAS_HEIGHT + NOTE_HEIGHT) {
         note.status = "active";
       }
 
@@ -95,7 +97,6 @@ export class NoteManager {
       return false;
     }
     const endTime = held.time + (held.duration ?? 0);
-    // Allow small 120ms release grace near the end of a sustain tail.
     held.status = currentTime >= endTime - 0.12 ? "hit" : "missed";
     return held.status === "hit";
   }
@@ -106,8 +107,8 @@ export class NoteManager {
         return false;
       }
       const tailHeight = (note.duration ?? 0) * scrollSpeed;
-      const topY = note.y - tailHeight - NOTE_HEIGHT;
-      const bottomY = note.y + NOTE_HEIGHT;
+      const topY = note.y - NOTE_HEIGHT;
+      const bottomY = note.y + tailHeight + NOTE_HEIGHT;
       return bottomY >= -NOTE_HEIGHT && topY <= canvasHeight + NOTE_HEIGHT;
     });
   }

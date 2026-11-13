@@ -22,6 +22,12 @@ import { ScoreEngine } from "./ScoreEngine";
 
 export type GameSnapshotListener = (snapshot: GameSnapshot) => void;
 
+export interface PvpEngineBridge {
+  onNoteAttempt: (lane: number, songTimeSec: number) => void;
+  onAutoMiss: (noteIndex: number) => void;
+  onSongFinished: () => void;
+}
+
 interface LaneVisualEffect {
   lane: number;
   kind: "hit" | "miss";
@@ -49,6 +55,7 @@ export class GameEngine {
   private activeLanes: boolean[] = [false, false, false, false];
   private laneEffects: LaneVisualEffect[] = [];
   private listener: GameSnapshotListener | null = null;
+  private pvpBridge: PvpEngineBridge | null = null;
 
   constructor(listener?: GameSnapshotListener) {
     this.listener = listener ?? null;
@@ -60,6 +67,10 @@ export class GameEngine {
 
   setListener(listener: GameSnapshotListener | null): void {
     this.listener = listener;
+  }
+
+  setPvpBridge(bridge: PvpEngineBridge | null): void {
+    this.pvpBridge = bridge;
   }
 
   attachCanvas(canvas: HTMLCanvasElement | null): void {
@@ -103,6 +114,57 @@ export class GameEngine {
     this.runCountdown(0);
 
     return parsedChart;
+  }
+
+  async startSynchronizedChart(rawChart: unknown, startDelayMs: number): Promise<ChartFile> {
+    this.stopCurrentRun();
+
+    const parsedChart = ChartParser.parse(rawChart);
+    this.chart = parsedChart;
+    this.notes.loadChart(parsedChart);
+    this.score.reset(this.notes.getTotalNotes());
+    this.lastJudgement = null;
+    this.activeLanes = [false, false, false, false];
+    this.laneEffects = [];
+
+    await this.audio.load(parsedChart);
+
+    const clampedDelay = Math.max(200, startDelayMs);
+    const startTargetPerf = performance.now() + clampedDelay;
+
+    this.phase = "countdown";
+    this.runSynchronizedCountdown(startTargetPerf, clampedDelay);
+    return parsedChart;
+  }
+
+  private runSynchronizedCountdown(startTargetPerf: number, totalDelayMs: number): void {
+    if (this.phase !== "countdown") {
+      return;
+    }
+
+    const remainingMs = startTargetPerf - performance.now();
+    if (remainingMs <= 16) {
+      this.countdownLabel = "";
+      this.phase = "playing";
+      this.input.attach();
+      this.audio.play(0);
+      this.emitSnapshot();
+      this.startLoop();
+      return;
+    }
+
+    const progress = 1 - remainingMs / Math.max(1, totalDelayMs);
+    const stepIndex = Math.min(
+      COUNTDOWN_STEPS.length - 1,
+      Math.max(0, Math.floor(progress * COUNTDOWN_STEPS.length))
+    );
+    this.countdownLabel = COUNTDOWN_STEPS[stepIndex] ?? "3";
+    this.emitSnapshot();
+    this.renderFrame();
+
+    this.countdownTimerId = window.setTimeout(() => {
+      this.runSynchronizedCountdown(startTargetPerf, totalDelayMs);
+    }, 80);
   }
 
   private runCountdown(stepIndex: number): void {
@@ -149,6 +211,7 @@ export class GameEngine {
         this.lastJudgement = result;
         this.score.apply(result);
         this.pushLaneEffect(missed.lane, "miss");
+        this.pvpBridge?.onAutoMiss(missed.index);
       }
 
       this.renderFrame();
@@ -181,13 +244,16 @@ export class GameEngine {
     this.stopLoop();
     this.input.detach();
     this.audio.stop();
-    this.phase = "result";
     this.activeLanes = [false, false, false, false];
+    if (this.pvpBridge) {
+      this.pvpBridge.onSongFinished();
+    }
+    this.phase = "result";
     this.emitSnapshot();
   }
 
   pause(): void {
-    if (this.phase !== "playing") {
+    if (this.phase !== "playing" || this.pvpBridge) {
       return;
     }
     this.stopLoop();
@@ -230,6 +296,8 @@ export class GameEngine {
 
     this.activeLanes[lane] = true;
     const currentTime = this.audio.getCurrentTime();
+    this.pvpBridge?.onNoteAttempt(lane, currentTime);
+
     const candidate = this.notes.findCandidateNote(
       lane,
       currentTime,
@@ -296,7 +364,6 @@ export class GameEngine {
     ctx.translate(centerX, centerY);
     ctx.rotate((rotationDeg * Math.PI) / 180);
 
-    // Base arrow points LEFT (-X); rotationDeg aligns it to LEFT/DOWN/UP/RIGHT.
     ctx.beginPath();
     ctx.moveTo(-half, 0);
     ctx.lineTo(headBaseX, -half);
@@ -338,10 +405,11 @@ export class GameEngine {
       return;
     }
 
+    // Bottom-to-top: head sits at top (clamped to HIT_ZONE_Y while holding), sustain tail extends downward.
     const sustainLength = durationSec * this.scrollSpeed;
-    const headY = note.status === "holding" ? Math.min(HIT_ZONE_Y, note.y) : note.y;
-    const tailEndY = note.y - sustainLength;
-    const visibleHeight = headY - tailEndY;
+    const headY = note.status === "holding" ? Math.max(HIT_ZONE_Y, note.y) : note.y;
+    const tailEndY = note.y + sustainLength;
+    const visibleHeight = tailEndY - headY;
     if (visibleHeight <= 2) {
       return;
     }
@@ -352,19 +420,18 @@ export class GameEngine {
     ctx.save();
     ctx.fillStyle = laneDark;
     ctx.globalAlpha = note.status === "holding" ? 0.92 : 0.72;
-    ctx.fillRect(bodyX, tailEndY, bodyWidth, visibleHeight);
+    ctx.fillRect(bodyX, headY, bodyWidth, visibleHeight);
 
     const innerWidth = bodyWidth * 0.45;
     ctx.fillStyle = laneColor;
-    ctx.fillRect(centerX - innerWidth / 2, tailEndY, innerWidth, visibleHeight);
+    ctx.fillRect(centerX - innerWidth / 2, headY, innerWidth, visibleHeight);
 
     ctx.strokeStyle = "#090B10";
     ctx.lineWidth = 2;
-    ctx.strokeRect(bodyX, tailEndY, bodyWidth, visibleHeight);
+    ctx.strokeRect(bodyX, headY, bodyWidth, visibleHeight);
 
-    // Rounded sustain cap at the top end of the hold trail.
     ctx.beginPath();
-    ctx.arc(centerX, tailEndY, bodyWidth / 2, Math.PI, 0);
+    ctx.arc(centerX, tailEndY, bodyWidth / 2, 0, Math.PI);
     ctx.fillStyle = laneColor;
     ctx.fill();
     ctx.stroke();
@@ -395,17 +462,15 @@ export class GameEngine {
         ctx.arc(centerX, HIT_ZONE_Y, radius, 0, Math.PI * 2);
         ctx.stroke();
 
-        // Four radial arcade sparks around the receptor hit.
         const sparkDist = NOTE_WIDTH * (0.38 + progress * 0.42);
         ctx.fillStyle = "#F8FAFC";
         for (let i = 0; i < 4; i += 1) {
-          const angle = (Math.PI / 4) + (i * Math.PI) / 2;
+          const angle = Math.PI / 4 + (i * Math.PI) / 2;
           const sx = centerX + Math.cos(angle) * sparkDist;
           const sy = HIT_ZONE_Y + Math.sin(angle) * sparkDist;
           ctx.fillRect(sx - 3, sy - 3, 6, 6);
         }
       } else {
-        // Miss cross flash on the receptor.
         const crossSize = 18 + progress * 6;
         ctx.strokeStyle = "#FB7185";
         ctx.lineWidth = 5;
@@ -433,7 +498,6 @@ export class GameEngine {
 
     const laneWidth = CANVAS_WIDTH / LANE_COUNT;
 
-    // Draw lane tracks and active key press columns.
     for (const laneDef of LANE_CONFIG) {
       const lane = laneDef.index;
       const x = lane * laneWidth;
@@ -456,7 +520,7 @@ export class GameEngine {
       }
     }
 
-    // Draw subtle hit-zone guide line behind receptors.
+    // Receptor guide line near top of highway.
     ctx.strokeStyle = "#2E364F";
     ctx.lineWidth = 3;
     ctx.beginPath();
@@ -464,7 +528,6 @@ export class GameEngine {
     ctx.lineTo(CANVAS_WIDTH, HIT_ZONE_Y);
     ctx.stroke();
 
-    // Draw directional receptors in final LEFT -> DOWN -> UP -> RIGHT order.
     for (const laneDef of LANE_CONFIG) {
       const lane = laneDef.index;
       const centerX = lane * laneWidth + laneWidth / 2;
@@ -484,7 +547,6 @@ export class GameEngine {
       );
     }
 
-    // Draw falling hold sustain bodies first, then directional note heads.
     const visibleNotes = this.notes.getVisibleNotes(CANVAS_HEIGHT, this.scrollSpeed);
     for (const note of visibleNotes) {
       const laneDef = LANE_CONFIG[note.lane];

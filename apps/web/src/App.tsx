@@ -4,19 +4,26 @@ import type { HealthResponse } from "@rhythm-battle/shared";
 import { GamePlayScreen } from "./components/GamePlayScreen";
 import { ResultScreen } from "./components/ResultScreen";
 import { SongSelectScreen } from "./components/SongSelectScreen";
+import { PvpLobbyScreen } from "./components/pvp/PvpLobbyScreen";
+import { PvpResultScreen } from "./components/pvp/PvpResultScreen";
 import { ChartParser } from "./game/engine/ChartParser";
 import { loadBestScores, recordBestScore, type BestScoresMap } from "./game/storage/bestScores";
 import type { ChartFile } from "./game/types/chart";
+import { usePvpMatch } from "./hooks/usePvpMatch";
 import { useRhythmEngine } from "./hooks/useRhythmEngine";
 import { fetchHealthStatus } from "./services/api";
 
+type AppMode = "free-play" | "online-pvp";
+
 export function App() {
+  const [mode, setMode] = useState<AppMode>("free-play");
   const [health, setHealth] = useState<HealthResponse | null>(null);
   const [healthLoading, setHealthLoading] = useState<boolean>(true);
   const [healthError, setHealthError] = useState<string | null>(null);
   const [bestScores, setBestScores] = useState<BestScoresMap>(() => loadBestScores());
   const [isNewBest, setIsNewBest] = useState<boolean>(false);
   const recordedResultRef = useRef<boolean>(false);
+  const launchedMatchIdRef = useRef<string | null>(null);
 
   const parsedChartsResult = useMemo<{ charts: ChartFile[]; error: string | null }>(() => {
     try {
@@ -45,6 +52,7 @@ export function App() {
     setCanvasElement,
     setScrollSpeed,
     startChart,
+    startSynchronizedChart,
     pause,
     resume,
     backToSongSelect,
@@ -52,6 +60,8 @@ export function App() {
     triggerLaneRelease,
     clearError
   } = useRhythmEngine();
+
+  const pvp = usePvpMatch();
 
   const checkBackendHealth = async (): Promise<void> => {
     setHealthLoading(true);
@@ -71,6 +81,40 @@ export function App() {
     void checkBackendHealth();
   }, []);
 
+  // Launch synchronized PvP gameplay when server schedules a match.
+  useEffect(() => {
+    const scheduled = pvp.scheduledMatch;
+    if (!scheduled) {
+      launchedMatchIdRef.current = null;
+      return;
+    }
+    if (launchedMatchIdRef.current === scheduled.matchId) {
+      return;
+    }
+
+    const chart =
+      parsedChartsResult.charts.find((c) => c.id === scheduled.chartId) ??
+      parsedChartsResult.charts[0];
+    if (!chart) {
+      return;
+    }
+
+    launchedMatchIdRef.current = scheduled.matchId;
+    setMode("online-pvp");
+    void startSynchronizedChart(chart, scheduled.startDelayMs, {
+      onNoteAttempt: (lane, songTimeSec) => pvp.sendNoteInput(lane, songTimeSec),
+      onAutoMiss: (noteIndex) => pvp.sendNoteMissTimeout(noteIndex),
+      onSongFinished: () => pvp.sendSongEnded()
+    });
+  }, [pvp, parsedChartsResult.charts, startSynchronizedChart]);
+
+  // Stop local audio/engine immediately if server ends PvP match early (e.g. HP reached 0).
+  useEffect(() => {
+    if (pvp.matchResult && (snapshot.phase === "playing" || snapshot.phase === "countdown")) {
+      backToSongSelect();
+    }
+  }, [pvp.matchResult, snapshot.phase, backToSongSelect]);
+
   const activeChart =
     selectedChart ??
     parsedChartsResult.charts.find((chart) => chart.id === selectedChartId) ??
@@ -78,7 +122,7 @@ export function App() {
     null;
 
   useEffect(() => {
-    if (snapshot.phase !== "result") {
+    if (mode === "online-pvp" || snapshot.phase !== "result") {
       recordedResultRef.current = false;
       setIsNewBest(false);
       return;
@@ -95,7 +139,7 @@ export function App() {
       setBestScores(result.bestScores);
       setIsNewBest(result.isNewBest);
     }
-  }, [snapshot.phase, snapshot.scoreState, activeChart]);
+  }, [mode, snapshot.phase, snapshot.scoreState, activeChart]);
 
   const isGameplayPhase =
     snapshot.phase === "countdown" ||
@@ -103,6 +147,7 @@ export function App() {
     snapshot.phase === "paused";
 
   if (isGameplayPhase && activeChart) {
+    const isPvpActive = mode === "online-pvp" && Boolean(pvp.room);
     return (
       <GamePlayScreen
         chart={activeChart}
@@ -111,9 +156,26 @@ export function App() {
         onPause={pause}
         onResume={resume}
         onRestart={() => void startChart(activeChart)}
-        onExit={backToSongSelect}
+        onExit={() => {
+          if (isPvpActive) {
+            pvp.leaveRoom();
+          }
+          backToSongSelect();
+        }}
         onLanePress={triggerLanePress}
         onLaneRelease={triggerLaneRelease}
+        pvpContext={
+          isPvpActive
+            ? {
+                selfPlayer: pvp.selfPlayer,
+                opponentPlayer: pvp.opponentPlayer,
+                pingMs: pvp.pingMs,
+                isSpecialReady: pvp.isSpecialReady,
+                combatPulse: pvp.combatPulse,
+                onSpecialAttack: pvp.sendSpecialAttack
+              }
+            : undefined
+        }
       />
     );
   }
@@ -121,7 +183,7 @@ export function App() {
   return (
     <div className="min-h-dvh bg-[#0B0D14] text-[#F8FAFC] flex flex-col">
       <header className="border-b-2 border-[#090B10] bg-[#141824]">
-        <div className="max-w-6xl w-full mx-auto px-4 sm:px-6 py-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="max-w-6xl w-full mx-auto px-4 sm:px-6 py-3.5 flex flex-col md:flex-row md:items-center justify-between gap-3">
           <div className="flex items-center gap-3">
             <div
               aria-hidden="true"
@@ -134,12 +196,46 @@ export function App() {
                 Modern Rhythm Battle
               </h1>
               <p className="text-xs font-semibold text-[#CBD5E1]">
-                4-Lane Arcade Rhythm Stage
+                FNF-Inspired Arcade & Online 1v1 PvP
               </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-3 flex-wrap">
+          <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
+            {/* Mode Switcher: Free Play vs Online PvP */}
+            <div
+              role="tablist"
+              aria-label="Game mode"
+              className="inline-flex rounded-lg bg-[#0B0D14] p-1 border-2 border-[#090B10]"
+            >
+              <button
+                type="button"
+                role="tab"
+                aria-selected={mode === "free-play"}
+                onClick={() => setMode("free-play")}
+                className={`min-h-[38px] px-3.5 py-1.5 rounded-md text-xs font-black uppercase transition-colors ${
+                  mode === "free-play"
+                    ? "bg-[#BE123C] text-white"
+                    : "text-[#CBD5E1] hover:text-[#F8FAFC]"
+                }`}
+              >
+                Free Play
+              </button>
+              <button
+                type="button"
+                role="tab"
+                aria-selected={mode === "online-pvp"}
+                onClick={() => setMode("online-pvp")}
+                className={`min-h-[38px] px-3.5 py-1.5 rounded-md text-xs font-black uppercase transition-colors ${
+                  mode === "online-pvp"
+                    ? "bg-[#0284C7] text-white"
+                    : "text-[#CBD5E1] hover:text-[#F8FAFC]"
+                }`}
+              >
+                Online PvP
+              </button>
+            </div>
+
             <div className="text-xs font-semibold text-[#CBD5E1] flex items-center gap-2">
               <span
                 aria-hidden="true"
@@ -174,7 +270,43 @@ export function App() {
       </header>
 
       <main className="max-w-6xl w-full mx-auto px-4 sm:px-6 py-6 sm:py-8 flex-1">
-        {snapshot.phase === "song-select" && (
+        {mode === "online-pvp" ? (
+          pvp.matchResult && activeChart ? (
+            <PvpResultScreen
+              chart={activeChart}
+              playerId={pvp.playerId}
+              result={pvp.matchResult}
+              onBackToRoom={() => pvp.clearMatchResult()}
+              onLeaveToLobby={() => {
+                pvp.clearMatchResult();
+                pvp.leaveRoom();
+              }}
+            />
+          ) : (
+            <PvpLobbyScreen
+              charts={parsedChartsResult.charts}
+              selectedChartId={selectedChartId}
+              connected={pvp.connected}
+              connecting={pvp.connecting}
+              playerId={pvp.playerId}
+              playerName={pvp.playerName}
+              pingMs={pvp.pingMs}
+              searching={pvp.searching}
+              room={pvp.room}
+              error={pvp.error}
+              onConnect={pvp.connect}
+              onDisconnect={pvp.disconnect}
+              onQuickMatch={pvp.quickMatch}
+              onCreateRoom={pvp.createRoom}
+              onJoinRoom={pvp.joinRoom}
+              onSelectChart={pvp.selectChart}
+              onSetReady={pvp.setReady}
+              onStartMatch={pvp.startMatch}
+              onLeaveRoom={pvp.leaveRoom}
+              onDismissError={pvp.clearError}
+            />
+          )
+        ) : snapshot.phase === "song-select" ? (
           <SongSelectScreen
             charts={parsedChartsResult.charts}
             bestScores={bestScores}
@@ -188,9 +320,7 @@ export function App() {
             onStartTrack={(chart) => void startChart(chart)}
             onDismissError={clearError}
           />
-        )}
-
-        {snapshot.phase === "result" && activeChart && (
+        ) : snapshot.phase === "result" && activeChart ? (
           <ResultScreen
             chart={activeChart}
             scoreState={snapshot.scoreState}
@@ -198,13 +328,13 @@ export function App() {
             onPlayAgain={() => void startChart(activeChart)}
             onBackToList={backToSongSelect}
           />
-        )}
+        ) : null}
       </main>
 
       <footer className="border-t-2 border-[#090B10] bg-[#141824]">
         <div className="max-w-6xl w-full mx-auto px-4 sm:px-6 py-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs font-semibold text-[#CBD5E1]">
           <span>Modern Rhythm Battle</span>
-          <span>LEFT / DOWN / UP / RIGHT Arcade Engine</span>
+          <span>Bottom-to-Top 4-Lane Engine & Online PvP</span>
         </div>
       </footer>
     </div>

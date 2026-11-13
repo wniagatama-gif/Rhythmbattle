@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { INITIAL_SCORE_STATE } from "@rhythm-battle/shared";
 import { DEFAULT_SCROLL_SPEED } from "../game/constants";
-import { GameEngine } from "../game/engine/GameEngine";
+import { GameEngine, type PvpEngineBridge } from "../game/engine/GameEngine";
 import type { ChartFile } from "../game/types/chart";
 import type { GameSnapshot } from "../game/types/game";
 
@@ -60,6 +60,7 @@ export function useRhythmEngine() {
     setEngineError(null);
     setIsLoadingAudio(true);
     setSelectedChart(chart);
+    engine.setPvpBridge(null);
 
     try {
       engine.setScrollSpeed(scrollSpeed);
@@ -74,6 +75,34 @@ export function useRhythmEngine() {
     }
   }, [scrollSpeed]);
 
+  const startSynchronizedChart = useCallback(
+    async (chart: ChartFile, startDelayMs: number, bridge: PvpEngineBridge) => {
+      const engine = engineRef.current;
+      if (!engine) {
+        return;
+      }
+
+      setEngineError(null);
+      setIsLoadingAudio(true);
+      setSelectedChart(chart);
+      engine.setPvpBridge(bridge);
+
+      try {
+        engine.setScrollSpeed(scrollSpeed);
+        const parsed = await engine.startSynchronizedChart(chart, startDelayMs);
+        setSelectedChart(parsed);
+      } catch (err: unknown) {
+        const msg = err instanceof Error ? err.message : "Failed to start synchronized PvP chart.";
+        setEngineError(msg);
+        engine.setPvpBridge(null);
+        engine.stopToSelect();
+      } finally {
+        setIsLoadingAudio(false);
+      }
+    },
+    [scrollSpeed]
+  );
+
   const pause = useCallback(() => {
     engineRef.current?.pause();
   }, []);
@@ -84,6 +113,7 @@ export function useRhythmEngine() {
 
   const backToSongSelect = useCallback(() => {
     setEngineError(null);
+    engineRef.current?.setPvpBridge(null);
     engineRef.current?.stopToSelect();
   }, []);
 
@@ -108,6 +138,7 @@ export function useRhythmEngine() {
     setCanvasElement,
     setScrollSpeed,
     startChart,
+    startSynchronizedChart,
     pause,
     resume,
     backToSongSelect,
@@ -116,4 +147,3 @@ export function useRhythmEngine() {
     clearError
   };
 }
-

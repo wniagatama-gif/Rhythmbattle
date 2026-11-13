@@ -17,6 +17,7 @@ export type CharacterAnimState =
   | "singDown"
   | "singUp"
   | "singRight"
+  | "miss"
   | "hurt"
   | "special"
   | "victory"
@@ -24,6 +25,7 @@ export type CharacterAnimState =
 
 export interface NoteObject {
   id: string;
+  index: number;
   time: number;
   lane: number;
   type: NoteType;
