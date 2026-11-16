@@ -132,3 +132,4 @@ export function LeaderboardScreen({ charts, bestScores, onBack }: LeaderboardScr
     </div>
   );
 }
+

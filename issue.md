@@ -1,204 +1,467 @@
-# ISSUE 007: COMPLETE FNF UI, ASSET, AUDIO & NOTE HIGHWAY INTEGRATION
+# ISSUE 008: COMPLETE FNF ASSET MIGRATION, AUTHENTIC GAMEPLAY & CHART SYSTEM CORRECTION
 
 **Priority:** Critical  
 **Status:** To Do  
-**Type:** UI/UX Reconstruction, Asset Integration & Gameplay Correction
+**Type:** Full Asset Integration, UI Reconstruction, Audio Integration & Rhythm Engine Correction  
+**Target:** Desktop Web Browser
 
-**Official Repositories:**
+## OFFICIAL SOURCE
 
-Main Game: https://github.com/FunkinCrew/Funkin
+**Main Game Repository:**
+https://github.com/FunkinCrew/Funkin
 
-Official Assets: https://github.com/FunkinCrew/funkin.assets
+**Official Asset Repository:**
+https://github.com/FunkinCrew/funkin.assets
 
 ---
 
-# PART A: FULL FNF UI & AUDIO INTEGRATION
+# 1. CRITICAL PROBLEMS
 
-## 1. OBJECTIVE
+Implementasi sebelumnya belum menyelesaikan masalah yang diminta.
 
-Saat ini gameplay Modern Rhythm Battle sudah menggunakan sebagian aset FNF, tetapi Lobby dan beberapa halaman lainnya masih menggunakan tampilan generik.
+Berdasarkan screenshot terbaru, ditemukan beberapa masalah:
 
-Selain itu, sistem audio menu dan beberapa interaksi belum menggunakan aset serta pengalaman audio yang sesuai.
+### Gameplay
 
-Lakukan pembaruan menyeluruh agar seluruh halaman memiliki identitas visual dan audio yang konsisten dengan Friday Night Funkin.
+- Note masih terlihat seperti panah generik.
+- Receptor belum menggunakan tampilan dan animasi FNF secara utuh.
+- Note muncul dengan susunan yang tidak sesuai dengan chart lagu.
+- Visual note highway masih terlalu sederhana.
+- Hold note dan sustain note belum memiliki tampilan yang meyakinkan.
+- Feedback judgment masih menggunakan tampilan generik.
+- Karakter dan stage belum memanfaatkan keseluruhan aset yang tersedia.
 
-Target halaman:
+### Results Screen
 
-- Main Menu.
-- Lobby.
-- Free Play.
-- Song Selection.
-- Difficulty Selection.
-- Character Selection.
-- Online PvP.
-- Quick Match.
-- Private Room.
-- Match Lobby.
-- Settings.
-- Pause Menu.
-- Results Screen.
-- Profile.
-- Leaderboard.
+- Results Screen masih menggunakan card generik.
+- Background belum menggunakan komposisi aset FNF yang sesuai.
+- Karakter hanya ditampilkan sebagai ikon kecil.
+- Typography belum konsisten.
+- Judgment breakdown masih menggunakan panel generik.
+- Tombol Play Again dan Back to Free Play belum mengikuti gaya menu FNF.
 
-Jangan hanya mengubah warna, font, dan ikon. Pelajari implementasi menu asli FNF dan gunakan aset yang sesuai dari repository resmi.
+### Platform
 
-## 2. OFFICIAL ASSET INTEGRATION
+- Lobby masih belum sepenuhnya menggunakan aset FNF.
+- Beberapa halaman masih terlihat seperti aplikasi dashboard.
+- Audio menu dan interaksi belum terintegrasi secara menyeluruh.
 
-Audit repository:
+**PENTING: Jangan melakukan perbaikan kosmetik saja. Lakukan audit ulang terhadap integrasi aset, chart, rendering, dan gameplay.**
+
+---
+
+# 2. FULL OFFICIAL ASSET INTEGRATION
+
+Gunakan repository berikut sebagai sumber utama:
 
 https://github.com/FunkinCrew/funkin.assets
 
-Integrasikan aset yang relevan:
+Targetnya adalah memanfaatkan seluruh kategori aset yang relevan dari repository, bukan hanya beberapa sprite panah.
 
-- Menu backgrounds.
-- Menu graphics.
+Lakukan inventarisasi seluruh asset repository.
+
+### A. Characters
+
+Integrasikan aset karakter yang tersedia:
+
 - Character sprites.
 - Character animations.
-- Song artwork.
-- Album artwork.
-- Difficulty graphics.
-- Buttons.
-- Navigation graphics.
-- Fonts.
-- Menu animations.
-- UI effects.
-- Sound effects.
-- Menu music.
-- Gameplay audio.
+- Character icons.
+- Character atlases.
+- Character offsets.
+- Character metadata.
+- Character animations for idle.
+- Singing animations.
+- Miss animations.
+- Other supported character animations.
 
-Pertahankan format, transparansi, sprite sheet, frame animasi, proporsi, offset, dan metadata aset.
+Jangan mengganti karakter resmi dengan ikon atau placeholder jika aset aslinya tersedia.
 
-Jangan mengganti aset resmi dengan placeholder atau ilustrasi generik apabila aset yang sesuai tersedia dan dapat digunakan.
-
-Dokumentasikan sumber aset, versi repository, commit hash, dan atribusi yang diperlukan.
-
-## 3. MAIN MENU REDESIGN
-
-Rekonstruksi Main Menu dengan gaya FNF.
-
-Elemen:
-
-- Background.
-- Logo atau title.
-- Menu navigation.
-- Selection indicator.
-- Selected state animation.
-- Character atau visual dekoratif.
-- Transition effects.
-- Menu sound effects.
-
-Menu:
-
-1. Free Play.
-2. Online PvP.
-3. Settings.
-4. Profile.
-5. Leaderboard.
-
-Semua menu harus interaktif dan dapat diakses menggunakan keyboard maupun mouse.
-
-## 4. LOBBY REDESIGN
-
-Perbaiki tampilan Lobby yang saat ini masih berbentuk dashboard generik.
-
-Hapus atau rekonstruksi elemen berikut:
-
-- Header logo RB generik.
-- Card lagu generik.
-- Ikon musik buatan CSS.
-- Panel detail lagu generik.
-- Slider yang tidak sesuai.
-- Tombol Play Battle generik.
-- Layout dashboard yang berbeda dari gameplay.
-
-Ganti dengan tampilan yang mengikuti struktur dan gaya menu FNF.
+### B. Stages
 
 Integrasikan:
 
-- Background.
-- Menu navigation.
+- Stage backgrounds.
+- Background layers.
+- Foreground layers.
+- Stage props.
+- Animated stage objects.
+- Stage lighting.
+- Stage effects.
+- Stage metadata.
+
+Pastikan komposisi stage sesuai dengan definisi stage yang digunakan.
+
+### C. Notes & Receptors
+
+Integrasikan:
+
+- Note sprites.
+- Receptor sprites.
+- Arrow graphics.
+- Receptor idle animations.
+- Pressed animations.
+- Confirm animations.
+- Hold note graphics.
+- Sustain body.
+- Sustain tail.
+- Note effects.
+- Judgment effects.
+
+Jangan membuat ulang note dan receptor menggunakan CSS jika aset resmi tersedia.
+
+### D. HUD
+
+Integrasikan:
+
+- Health bar.
+- Health icons.
+- Score display graphics.
+- Combo graphics.
+- Judgment graphics.
+- Countdown graphics.
+- Gameplay UI.
+- Relevant HUD effects.
+
+### E. Menu & Interface
+
+Integrasikan:
+
+- Main menu backgrounds.
+- Freeplay graphics.
+- Menu navigation graphics.
+- Menu selection effects.
+- Difficulty graphics.
+- Song artwork.
+- Album artwork.
+- Fonts.
+- UI decorations.
+- Menu transitions.
+
+### F. Audio
+
+Integrasikan seluruh kategori audio yang relevan:
+
+- Menu music.
+- Gameplay music.
+- Instrumental.
+- Vocals.
+- Menu sound effects.
+- Navigation sound effects.
+- Confirm sound.
+- Cancel sound.
+- Gameplay sound effects.
+- Countdown sound.
+- Other relevant audio assets.
+
+### G. Asset Catalog
+
+Buat dokumentasi dan manifest aset.
+
+Setiap aset harus memiliki informasi:
+
+- Asset ID.
+- File path.
+- Asset category.
+- Original filename.
+- Associated character, stage, song, or UI component.
+- Animation metadata jika tersedia.
+- Loading method.
+- Source repository.
+- License and attribution information.
+
+**Jangan mengunduh lalu menggunakan aset secara acak. Semua aset harus dipetakan ke komponen yang benar.**
+
+Jangan menganggap setiap file dalam repository harus ditampilkan sekaligus. Gunakan seluruh koleksi aset yang relevan dengan fitur dan konten yang benar-benar digunakan.
+
+---
+
+# 3. CHART SYSTEM: STOP RANDOM NOTE GENERATION
+
+**INI ADALAH PRIORITAS TERTINGGI.**
+
+Note yang muncul saat ini tidak sesuai dengan chart lagu.
+
+Audit dan perbaiki sumber masalahnya.
+
+### Dilarang
+
+- Generate note secara random.
+- Mengacak lane.
+- Mengacak waktu note.
+- Membuat note berdasarkan interval acak.
+- Membuat note dekoratif yang tidak berasal dari chart.
+- Menggunakan jumlah note buatan yang tidak sesuai dengan lagu.
+- Mengubah urutan note secara otomatis tanpa dasar chart.
+- Menggunakan satu chart untuk seluruh lagu jika chart aslinya berbeda.
+
+### Wajib
+
+Gunakan chart asli yang tersedia dalam source FNF jika format dan lisensinya memungkinkan.
+
+Audit struktur:
+
+- Song metadata.
+- BPM.
+- Tempo changes.
+- Song sections.
+- Section timing.
+- Note timestamps.
+- Note lanes.
+- Sustain duration.
+- Note types.
+- Chart difficulty.
+- Character assignment.
+- Instrumental and vocal synchronization.
+
+Jika chart tersedia dalam format FNF, buat parser yang memahami format tersebut.
+
+Jangan hanya mengambil sebagian data chart tanpa memahami struktur dan metadata-nya.
+
+### Chart Mapping
+
+Buat sistem pemetaan yang konsisten antara:
+
+- Original chart lane.
+- Player side.
+- Direction.
+- Note sprite.
+- Receptor.
+- Keyboard input.
+
+Pastikan lane tidak tertukar.
+
+Untuk kontrol empat arah Modern Rhythm Battle, gunakan mapping:
+
+| Index | Direction | Keyboard |
+|---|---|---|
+| 0 | LEFT | Arrow Left |
+| 1 | DOWN | Arrow Down |
+| 2 | UP | Arrow Up |
+| 3 | RIGHT | Arrow Right |
+
+Jika chart asli memiliki struktur lane berbeda, buat adapter yang benar berdasarkan format chart tersebut.
+
+Jangan mengubah urutan note untuk sekadar menyesuaikan tampilan.
+
+### Difficulty
+
+Setiap difficulty harus memiliki chart yang sesuai.
+
+- Easy menggunakan chart Easy.
+- Normal menggunakan chart Normal.
+- Hard menggunakan chart Hard.
+- Difficulty tambahan hanya tersedia jika datanya memang ada.
+
+Jangan membuat chart Easy, Normal, dan Hard dari satu chart yang sama melalui randomisasi.
+
+Jika chart tidak tersedia, tampilkan status bahwa chart belum tersedia. Jangan berpura-pura memiliki chart asli.
+
+---
+
+# 4. NOTE HIGHWAY & RECEPTOR RECONSTRUCTION
+
+Rekonstruksi note highway mengikuti implementasi FNF.
+
+### Note Highway
+
+- Gunakan empat lane.
+- Pertahankan ukuran dan proporsi yang sesuai.
+- Gunakan background dan separator lane yang tepat.
+- Jangan membuat area kosong yang tidak perlu.
+- Pastikan note terlihat jelas.
+- Pastikan note tidak terpotong.
+- Pastikan HUD tidak menutupi note.
+- Gunakan aset receptor yang benar.
+
+Pertahankan arah note Modern Rhythm Battle yang telah ditentukan: **BOTTOM-TO-TOP**.
+
+Artinya, note bergerak dari bawah menuju receptor di bagian atas.
+
+### Receptor
+
+Setiap lane harus memiliki receptor dengan animasi:
+
+1. Idle.
+2. Pressed.
+3. Confirm.
+
+Ketika input dilakukan:
+
+- Receptor memainkan pressed animation.
+- Jika input mengenai note yang valid, mainkan confirm animation.
+- Jika tidak mengenai note, jangan memberikan judgment palsu.
+- Setelah animasi selesai, receptor kembali ke idle.
+
+Jangan menggunakan panah outline statis sebagai pengganti receptor resmi.
+
+### Note Rendering
+
+Semua note harus berasal dari chart yang valid.
+
+Note harus:
+
+- Muncul pada waktu yang benar.
+- Berada di lane yang benar.
+- Bergerak dengan kecepatan yang benar.
+- Memiliki ukuran yang sesuai.
+- Menggunakan sprite yang benar.
+- Menghilang ketika berhasil diselesaikan.
+- Menghasilkan Miss jika melewati batas judgment.
+
+### Hold & Sustain
+
+Gunakan aset resmi untuk:
+
+- Hold head.
+- Sustain body.
+- Sustain tail.
+
+Pastikan panjang visual sesuai durasi note.
+
+Ketika pemain menahan tombol:
+
+- Sustain tetap aktif.
+- Judgment dihitung sesuai mekanisme yang digunakan.
+- Animasi receptor dan karakter berjalan dengan benar.
+- Tidak menghasilkan hit berulang secara tidak sengaja.
+
+---
+
+# 5. TIMING, AUDIO CLOCK & JUDGMENT
+
+Jangan mengubah sistem audio clock yang sudah berjalan dengan benar.
+
+Periksa:
+
+- Song offset.
+- Chart offset.
+- BPM.
+- Tempo changes.
+- Audio playback position.
+- Note spawn time.
+- Note hit time.
+- Sustain duration.
+- Judgment windows.
+
+Gunakan audio clock sebagai acuan waktu utama.
+
+Jangan menggunakan frame rendering sebagai sumber waktu chart.
+
+### Judgment
+
+Pertahankan sistem judgment yang sudah ada kecuali ditemukan kesalahan implementasi.
+
+Pastikan:
+
+- Sick.
+- Good.
+- Bad.
+- Shit.
+- Miss.
+
+dihitung berdasarkan selisih waktu input dengan timestamp note.
+
+Jangan mengubah hasil judgment hanya untuk mempercantik Results Screen.
+
+### Accuracy & Score
+
+Audit rumus:
+
+- Total score.
+- Accuracy.
+- Max combo.
+- Judgment count.
+- Miss count.
+
+Pastikan hasil yang ditampilkan di Results Screen benar-benar berasal dari hasil gameplay.
+
+Jumlah note dalam chart harus sesuai dengan data sebenarnya.
+
+---
+
+# 6. CHARACTER & STAGE ANIMATION
+
+Gunakan character sprites dan animation metadata resmi.
+
+Setiap input arah harus memicu animasi yang sesuai.
+
+| Input | Character Animation |
+|---|---|
+| LEFT | singLEFT |
+| DOWN | singDOWN |
+| UP | singUP |
+| RIGHT | singRIGHT |
+
+Integrasikan:
+
+- Idle.
+- Singing.
+- Miss.
+- Hurt.
+- Special.
+- Victory.
+- Defeat.
+
+Gunakan animasi yang memang tersedia.
+
+Jangan memaksakan nama animasi yang tidak ada dalam definisi karakter.
+
+Pastikan karakter tidak terus berada dalam animasi singing setelah input selesai.
+
+Stage juga harus menggunakan background, foreground, props, dan animasi yang tersedia.
+
+---
+
+# 7. FULL UI RECONSTRUCTION
+
+Seluruh halaman harus menggunakan identitas visual FNF.
+
+Jangan mempertahankan tampilan dashboard generik.
+
+### Main Menu
+
+- Background resmi.
+- Typography sesuai.
+- Menu selection.
+- Navigation effects.
+- Character presentation.
+- Menu music.
+- Menu sound effects.
+
+### Lobby
+
 - Song selection.
 - Song artwork.
 - Selected song.
 - Difficulty.
 - Character presentation.
 - Song preview.
-- Navigation indicator.
-- Transition animations.
+- Navigation animation.
 
-Jangan membuat screenshot statis. Semua elemen harus benar-benar berfungsi.
-
-## 5. FREE PLAY MENU
-
-Gunakan tampilan Freeplay FNF sebagai acuan utama.
-
-Fitur:
+### Free Play
 
 - Song list.
-- Song artwork.
-- Song title.
-- Artist information jika tersedia.
-- Difficulty selection.
+- Artwork.
+- Difficulty.
 - High score.
 - Song preview.
-- Selected song indicator.
-- Gameplay launch.
+- Selected state.
 
-Pertahankan data lagu dan chart yang sudah ada.
+### Online PvP
 
-## 6. ONLINE PVP MENU
+- Quick Match.
+- Private Room.
+- Room Code.
+- Matchmaking.
+- Player Ready.
+- Character Selection.
+- Match Lobby.
+- Match Countdown.
 
-Buat menu Online PvP yang mengikuti identitas visual FNF.
+Pertahankan semua mekanisme Online PvP yang sudah ada.
 
-### Quick Match
-
-- Search opponent.
-- Searching animation.
-- Match found.
-- Connection status.
-- Cancel matchmaking.
-
-### Private Room
-
-- Create room.
-- Join room.
-- Room code.
-- Copy room code.
-- Player ready.
-- Host start match.
-
-### Match Lobby
-
-- Player 1.
-- Player 2.
-- Character selection.
-- Selected song.
-- Difficulty.
-- Connection status.
-- Ready status.
-- Countdown.
-
-Mekanisme multiplayer yang sudah berjalan tidak boleh rusak.
-
-## 7. CHARACTER SELECTION
-
-Gunakan karakter dari repository aset resmi.
-
-- Character sprites.
-- Character animations.
-- Character icons.
-- Selected character state.
-- Character transition.
-- Player 1 selection.
-- Player 2 selection.
-
-Jangan menggunakan avatar generik.
-
-## 8. SETTINGS MENU
-
-Gunakan gaya visual FNF.
-
-Pengaturan minimum:
+### Settings
 
 - Master Volume.
 - Music Volume.
@@ -209,409 +472,185 @@ Pengaturan minimum:
 - Display Settings.
 - Gameplay Settings.
 
-Seluruh pengaturan harus berfungsi dan tersimpan.
+### Pause Menu
 
-Perubahan pengaturan harus benar-benar diterapkan ke gameplay.
+Gunakan komposisi dan aset menu yang sesuai.
 
-## 9. OTHER SCREENS
+### Results Screen
 
-Audit dan sesuaikan:
+Rekonstruksi total Results Screen.
 
-- Pause Menu.
-- Results Screen.
-- Profile.
-- Leaderboard.
-- Loading Screen.
-- Matchmaking Screen.
-- Match Found Screen.
+Jangan mempertahankan card generik seperti screenshot saat ini.
 
-Halaman khusus Modern Rhythm Battle yang tidak memiliki padanan langsung di FNF harus mengikuti visual language yang sama.
+Integrasikan:
 
-## 10. AUDIO INTEGRATION
+- Background hasil.
+- Character presentation.
+- Stage result title.
+- Result status.
+- Score.
+- Accuracy.
+- Max combo.
+- Judgment breakdown.
+- Rank atau grade jika tersedia.
+- Play Again.
+- Back to Free Play.
 
-**Seluruh pengalaman audio menu dan gameplay harus diperiksa. Jangan hanya mengintegrasikan gambar.**
+Gunakan aset dan typography FNF yang sesuai.
 
-Audit audio dari repository resmi.
+Karakter harus ditampilkan menggunakan sprite atau animasi yang benar, bukan ikon kecil generik.
 
-### Menu Music
+Pastikan seluruh nilai hasil berasal dari gameplay yang sebenarnya.
 
-- Gunakan musik menu yang tersedia dan sesuai.
-- Musik diputar pada halaman yang relevan.
-- Transisi halaman tidak menyebabkan audio bertumpuk.
-- Musik berhenti atau berganti ketika gameplay dimulai.
+Untuk Online PvP, Results Screen harus dapat menampilkan hasil kedua pemain.
 
-### Menu Sound Effects
+---
 
-Integrasikan sound effect untuk:
+# 8. AUDIO INTEGRATION
 
-- Menu navigation.
-- Menu selection.
+Integrasikan audio secara menyeluruh.
+
+### Menu
+
+- Menu music.
+- Navigation sound.
 - Confirm.
 - Cancel.
-- Difficulty selection.
 - Song selection.
+- Difficulty selection.
 - Matchmaking.
-- Player ready.
 - Match found.
+- Player ready.
 - Countdown.
-- Menu transitions.
 
-### Song Preview
+### Free Play
 
-- Preview dimulai ketika lagu dipilih.
-- Preview berhenti ketika lagu diganti.
-- Preview tidak bertumpuk dengan musik menu.
-- Preview berhenti ketika gameplay dimulai.
+- Song preview.
+- Preview switching.
+- Preview cleanup.
+- Gameplay music transition.
 
-### Gameplay Audio
-
-Pertahankan sistem audio yang sudah berjalan.
-
-Audit:
+### Gameplay
 
 - Instrumental.
 - Vocals.
-- BPM.
-- Song timing.
-- Audio synchronization.
+- Gameplay sound effects.
+- Countdown.
 - Pause.
 - Resume.
 - Results transition.
 
-Jangan merusak audio clock atau judgment timing yang sudah selesai.
+### Audio Manager
 
-### Central Audio Manager
+Pastikan terdapat satu sistem pengelolaan audio yang konsisten.
 
-Buat atau rapikan central audio manager untuk:
+Hindari:
 
-- Menu music.
-- Song preview.
-- Gameplay music.
-- Sound effects.
-- Volume configuration.
-- Audio transitions.
-- Audio cleanup.
+- Audio bertumpuk.
+- Musik menu tetap berjalan ketika gameplay dimulai.
+- Song preview tidak berhenti.
+- Sound effect diputar berulang secara tidak sengaja.
+- Audio tidak sinkron dengan chart.
+
+---
+
+# 9. ONLINE PVP INTEGRATION
+
+Pertahankan mode 1 VS 1.
+
+Kedua pemain harus memainkan lagu dan chart yang sama.
+
+- Player 1 memiliki lane dan receptor sendiri.
+- Player 2 memiliki lane dan receptor sendiri.
+- Input diproses secara independen.
+- Judgment dihitung masing-masing.
+- Animasi karakter independen.
+- HP dan combat tetap tersinkronisasi.
+- Server tetap menjadi otoritas hasil pertandingan.
+
+Jangan membuat chart berbeda untuk kedua pemain.
+
+Jangan mengirim hasil score atau judgment dari client sebagai nilai final tanpa validasi server.
+
+Pastikan perubahan chart parser dan renderer tidak merusak sinkronisasi multiplayer.
+
+---
+
+# 10. ASSET LOADING & PERFORMANCE
+
+Karena koleksi aset cukup besar, jangan memuat seluruh file ke memori browser sekaligus.
+
+Implementasikan:
+
+- Asset manifest.
+- Asset preload.
+- Lazy loading.
+- Texture reuse.
+- Sprite atlas reuse.
 - Audio lifecycle.
+- Cache.
+- Asset validation.
+- Missing asset reporting.
 
-Pastikan tidak ada audio ganda ketika berpindah halaman.
+Muat aset berdasarkan lagu, karakter, stage, dan halaman yang sedang digunakan.
+
+Seluruh aset yang relevan harus tersedia melalui sistem loading yang konsisten.
+
+Jangan mengurangi kualitas aset secara sembarangan.
 
 ---
 
-# PART B: NOTE HIGHWAY, RECEPTOR & HIT NOTE CORRECTION
-
-## 11. OBJECTIVE
-
-Perbaiki sistem Note Highway dan Hit Note agar mengikuti visual dan mekanisme gameplay FNF.
-
-Kondisi saat ini berdasarkan screenshot:
-
-- Receptor hanya menggunakan panah outline statis.
-- Note belum terlihat bergerak dengan benar.
-- Lane masih tampak kosong.
-- Animasi receptor belum mengikuti input.
-- Tombol arah ditampilkan sebagai tombol besar di bawah gameplay.
-- Feedback hit note belum sesuai.
-- Animasi karakter belum terintegrasi dengan baik.
-
-Jangan hanya memperbaiki CSS.
-
-Audit note rendering, asset mapping, note spawning, keyboard input, receptor animation, dan judgment secara menyeluruh.
-
-## 12. NOTE & RECEPTOR ASSETS
-
-Gunakan aset resmi dari:
-
-https://github.com/FunkinCrew/funkin.assets
-
-Audit:
-
-- Note sprites.
-- Receptor sprites.
-- Arrow animations.
-- Hold note sprites.
-- Sustain note graphics.
-- Pressed animation.
-- Confirm animation.
-- Directional graphics.
-- Note effects.
-
-Gunakan sprite dan animasi resmi yang sesuai.
-
-Jangan menggunakan panah CSS, Unicode, emoji, atau SVG generik jika aset resmi tersedia.
-
-Pertahankan:
-
-- Original texture.
-- Original proportions.
-- Original colors.
-- Original animation frames.
-- Original visual effects.
-- Directional identity.
-
-Pastikan asset loader membaca definisi sprite dan animasi dengan benar.
-
-## 13. RECEPTOR SYSTEM
-
-Setiap lane harus memiliki receptor sendiri.
-
-Minimal terdapat tiga kondisi:
-
-### Idle
-
-- Receptor berada pada posisi tetap.
-- Menampilkan animasi idle sesuai aset.
-- Tidak menggunakan panah outline generik.
-- Tetap terlihat jelas ketika tidak ada input.
-
-### Pressed
-
-Ketika pemain menekan tombol yang sesuai:
-
-- Receptor memainkan animasi pressed.
-- Respons visual terjadi secara langsung.
-- Tidak perlu menunggu respons server untuk feedback visual awal.
-- Tidak mengganggu perhitungan judgment.
-
-### Confirm
-
-Ketika input mengenai note dengan benar:
-
-- Receptor memainkan animasi confirm.
-- Note yang terkena input diselesaikan.
-- Judgment feedback ditampilkan.
-- Karakter memainkan animasi sesuai arah note.
-
-Setelah animasi selesai, receptor kembali ke idle.
-
-Jangan membiarkan receptor terjebak pada kondisi pressed atau confirm.
-
-## 14. NOTE SPAWNING & MOVEMENT
-
-Audit mengapa note belum terlihat bergerak dengan benar.
-
-Pastikan seluruh note dari chart dirender.
-
-Ketentuan:
-
-- Note muncul berdasarkan waktu chart.
-- Note bergerak dari bawah menuju receptor di bagian atas.
-- Note memiliki arah dan lane yang benar.
-- Note terlihat jelas selama bergerak.
-- Note tidak muncul terlambat.
-- Note tidak menghilang sebelum mencapai receptor.
-- Note tidak bertumpuk secara tidak wajar.
-- Note tidak muncul di lane yang salah.
-
-Setiap note yang terlihat harus memiliki data timing dan lane yang valid.
-
-### Note Types
-
-Pastikan semua jenis note berfungsi:
-
-- Tap Note.
-- Hold Note.
-- Sustain Note.
-
-Hold note harus memiliki body dan tail yang sesuai dengan durasinya.
-
-## 15. HIT NOTE MECHANISM
-
-Perbaiki deteksi input agar sesuai dengan timing note.
-
-Urutan:
-
-1. Note bergerak menuju receptor.
-2. Pemain menekan tombol yang sesuai.
-3. Sistem memeriksa lane.
-4. Sistem memeriksa timing input terhadap note.
-5. Judgment dihitung.
-6. Receptor memainkan animasi confirm.
-7. Note yang berhasil ditekan diselesaikan.
-8. Judgment feedback ditampilkan.
-9. Karakter memainkan animasi sesuai arah note.
-10. Score, combo, dan accuracy diperbarui.
-
-Jika pemain menekan tombol tanpa note yang valid:
-
-- Terapkan aturan input rhythm engine yang sudah digunakan.
-- Jangan memberikan judgment palsu.
-- Jangan menghasilkan damage atau score yang tidak valid.
-
-Jika note melewati receptor tanpa input:
-
-- Hitung sebagai Miss.
-- Tampilkan feedback Miss.
-- Mainkan animasi karakter yang sesuai.
-- Terapkan konsekuensi gameplay berdasarkan konfigurasi.
-
-Jangan mengubah judgment window tanpa alasan teknis dan pengujian.
-
-## 16. REMOVE GENERIC ARROW BUTTON UI
-
-Pada screenshot saat ini terdapat empat tombol besar di bawah lane:
-
-- LEFT.
-- DOWN.
-- UP.
-- RIGHT.
-
-Tampilan tersebut tidak sesuai dengan komposisi gameplay FNF untuk target desktop.
-
-Ketentuan:
-
-- Hilangkan tombol kontrol besar di bawah gameplay.
-- Gunakan keyboard sebagai input utama.
-- Jangan menampilkan tombol arah sebagai elemen UI permanen.
-- Receptor menjadi indikator visual input.
-- Animasi pressed dan confirm menjadi feedback ketika tombol ditekan.
-
-Informasi kontrol dapat ditampilkan melalui Settings atau tutorial.
-
-### Keyboard Mapping
-
-| Lane | Keyboard |
-|---|---|
-| LEFT | Arrow Left |
-| DOWN | Arrow Down |
-| UP | Arrow Up |
-| RIGHT | Arrow Right |
-
-Pertahankan mapping yang sudah ditetapkan sebelumnya.
-
-## 17. NOTE HIGHWAY LAYOUT
-
-Perbaiki komposisi lane agar mengikuti gameplay FNF.
-
-Ketentuan:
-
-- Empat lane memiliki lebar dan jarak konsisten.
-- Receptor berada pada posisi yang sesuai.
-- Note bergerak menuju receptor.
-- Note tidak terpotong container.
-- Note tidak tertutup HUD.
-- Tidak ada ruang kosong berlebihan.
-- Background stage tetap terlihat.
-- Note highway menyatu dengan komposisi gameplay.
-
-**Arah note wajib bottom-to-top.**
-
-Jangan mengubahnya menjadi top-to-bottom.
-
-## 18. INPUT FEEDBACK & CHARACTER ANIMATION
-
-Input harus memberikan respons visual langsung.
-
-Mapping:
-
-- LEFT: receptor kiri bereaksi dan karakter memainkan singLEFT.
-- DOWN: receptor bawah bereaksi dan karakter memainkan singDOWN.
-- UP: receptor atas bereaksi dan karakter memainkan singUP.
-- RIGHT: receptor kanan bereaksi dan karakter memainkan singRIGHT.
-
-Pastikan animasi karakter tidak tertukar.
-
-Animasi harus kembali ke idle sesuai mekanisme karakter.
-
-Untuk Online PvP, input dan animasi kedua pemain harus terpisah.
-
-## 19. ONLINE PVP COMPATIBILITY
-
-Seluruh perbaikan harus tetap mendukung pertandingan 1 VS 1.
-
-- Player 1 memiliki note dan receptor sendiri.
-- Player 2 memiliki note dan receptor sendiri.
-- Keduanya memainkan chart yang sama.
-- Input kedua pemain diproses terpisah.
-- Judgment dihitung untuk masing-masing pemain.
-- Receptor masing-masing bereaksi secara independen.
-- Animasi karakter masing-masing tidak saling memengaruhi.
-- Server tetap menjadi otoritas judgment dan combat.
-
-Jangan membuat satu receptor atau input bersama untuk kedua pemain.
-
----
-
-# PART C: TECHNICAL INTEGRATION & QUALITY ASSURANCE
-
-## 20. TECHNICAL AUDIT
-
-Sebelum melakukan perubahan, audit implementasi yang sudah berjalan.
-
-### UI Audit
-
-- Apakah seluruh halaman menggunakan aset yang sesuai?
-- Apakah navigasi terhubung dengan benar?
-- Apakah menu transition berfungsi?
-- Apakah song selection menggunakan data yang benar?
-- Apakah audio menu dibersihkan ketika halaman berganti?
-
-### Note Audit
-
-- Apakah chart berhasil dibaca?
-- Apakah note spawning berjalan?
-- Apakah posisi awal note benar?
-- Apakah note diperbarui berdasarkan audio clock?
-- Apakah receptor menggunakan aset resmi?
-- Apakah definisi animasi receptor terbaca?
-- Apakah keyboard input terhubung dengan lane?
-- Apakah input memicu animasi receptor?
-- Apakah judgment terhubung dengan note yang benar?
-- Apakah note diselesaikan setelah hit?
-- Apakah Miss terdeteksi ketika note melewati receptor?
-
-Perbaiki penyebab sebenarnya, bukan hanya gejala visual.
-
-## 21. REGRESSION PROTECTION
-
-Jangan merusak fitur yang sudah selesai pada issue sebelumnya.
-
-Pertahankan:
-
-- Project foundation.
-- Rhythm engine.
-- Audio clock.
-- Chart system.
-- Judgment system.
-- Score.
-- Combo.
-- Accuracy.
-- Health system.
-- Combat.
-- Special Attack.
-- Free Play.
-- Online PvP.
-- WebSocket.
-- Database.
-- Authentication.
-
-Jangan mengubah logic gameplay yang sudah berjalan tanpa kebutuhan teknis.
-
-## 22. IMPLEMENTATION PHASES
-
-### Phase 1: Audit
-
-- Audit seluruh halaman.
-- Audit repository FNF.
-- Audit repository aset.
-- Audit menu dan audio.
-- Audit note rendering.
-- Audit receptor.
-- Audit input dan judgment.
-- Buat laporan komponen yang harus diperbaiki.
-
-### Phase 2: Asset Integration
-
+# 11. IMPLEMENTATION PHASES
+
+### Phase 1: Audit & Asset Inventory
+
+- Audit seluruh repository.
+- Buat daftar aset.
+- Audit format sprite.
+- Audit animation metadata.
+- Audit chart format.
+- Audit audio format.
+- Audit implementasi saat ini.
+- Identifikasi penyebab note random atau salah mapping.
+
+### Phase 2: Asset Pipeline
+
+- Buat asset manifest.
+- Buat asset loader.
+- Integrasikan character assets.
+- Integrasikan stage assets.
+- Integrasikan note assets.
+- Integrasikan receptor assets.
+- Integrasikan HUD assets.
 - Integrasikan menu assets.
-- Integrasikan fonts.
-- Integrasikan backgrounds.
-- Integrasikan song artwork.
-- Integrasikan menu graphics.
-- Integrasikan receptor sprites.
-- Integrasikan note sprites.
-- Integrasikan sound effects.
-- Integrasikan menu music.
+- Integrasikan audio assets.
 
-### Phase 3: Menu Reconstruction
+### Phase 3: Chart System Correction
+
+- Implementasikan parser chart.
+- Implementasikan difficulty mapping.
+- Implementasikan BPM dan tempo changes.
+- Implementasikan note timestamp.
+- Implementasikan lane mapping.
+- Implementasikan sustain duration.
+- Hapus random note generation.
+- Validasi hasil parser terhadap chart sumber.
+
+### Phase 4: Gameplay Reconstruction
+
+- Receptor rendering.
+- Receptor animations.
+- Note rendering.
+- Note spawning.
+- Note movement.
+- Hold note.
+- Sustain note.
+- Hit detection.
+- Judgment feedback.
+- Character animation.
+- Stage rendering.
+
+### Phase 5: Platform UI
 
 - Main Menu.
 - Lobby.
@@ -620,176 +659,179 @@ Jangan mengubah logic gameplay yang sudah berjalan tanpa kebutuhan teknis.
 - Difficulty Selection.
 - Character Selection.
 - Online PvP.
-- Quick Match.
-- Private Room.
 - Settings.
+- Pause.
+- Results.
 
-### Phase 4: Note Highway Correction
-
-- Receptor sprites.
-- Receptor idle.
-- Receptor pressed.
-- Receptor confirm.
-- Note spawning.
-- Note movement.
-- Hold note.
-- Sustain note.
-- Keyboard input.
-- Hit detection.
-- Judgment feedback.
-- Character animation.
-
-### Phase 5: Audio Integration
+### Phase 6: Audio Integration
 
 - Menu music.
-- Navigation sound.
-- Confirm sound.
-- Cancel sound.
+- Sound effects.
 - Song preview.
+- Instrumental.
+- Vocals.
 - Gameplay audio.
-- Volume configuration.
 - Audio lifecycle.
 
-### Phase 6: Other Screens
+### Phase 7: Multiplayer & QA
 
-- Pause Menu.
-- Results Screen.
-- Profile.
-- Leaderboard.
-- Loading.
-- Matchmaking.
-- Match Found.
-
-### Phase 7: QA
-
-- Test seluruh navigasi.
-- Test menu audio.
-- Test song preview.
-- Test note rendering.
-- Test receptor animation.
-- Test hit detection.
-- Test Free Play.
-- Test Online PvP.
-- Test dua browser berbeda.
-- Test audio synchronization.
+- Test Player 1.
+- Test Player 2.
+- Test identical chart.
+- Test judgment.
+- Test combat.
 - Test reconnect.
-- Test seluruh fitur yang sudah ada.
+- Test result synchronization.
+- Test browser compatibility.
 
 ---
 
-# 23. ACCEPTANCE CRITERIA
+# 12. ACCEPTANCE CRITERIA
 
-## UI & Menu
+## Asset Integration
 
-- [ ] Main Menu menggunakan aset dan gaya visual FNF.
-- [ ] Lobby menggunakan aset dan gaya visual FNF.
-- [ ] Free Play mengikuti visual FNF.
-- [ ] Song Selection berfungsi.
-- [ ] Difficulty Selection berfungsi.
-- [ ] Character Selection berfungsi.
-- [ ] Online PvP menggunakan visual konsisten.
-- [ ] Quick Match berfungsi.
-- [ ] Private Room berfungsi.
-- [ ] Settings menggunakan visual konsisten.
-- [ ] Pause Menu menggunakan visual konsisten.
-- [ ] Results Screen menggunakan visual konsisten.
-- [ ] Tidak ada dashboard generik yang tidak sesuai.
+- [ ] Asset repository sudah diaudit.
+- [ ] Asset manifest tersedia.
+- [ ] Seluruh kategori aset yang relevan sudah dipetakan.
+- [ ] Character assets digunakan.
+- [ ] Stage assets digunakan.
+- [ ] Note assets digunakan.
+- [ ] Receptor assets digunakan.
+- [ ] HUD assets digunakan.
+- [ ] Menu assets digunakan.
+- [ ] Audio assets digunakan.
+- [ ] Tidak ada placeholder generik ketika aset resmi tersedia.
+
+## Chart
+
+- [ ] Random note generation dihapus.
+- [ ] Chart asli dapat dibaca.
+- [ ] Difficulty sesuai.
+- [ ] Timestamp sesuai.
+- [ ] BPM sesuai.
+- [ ] Tempo changes didukung.
+- [ ] Lane mapping benar.
+- [ ] Sustain duration benar.
+- [ ] Tidak ada note tambahan yang tidak berasal dari chart.
+- [ ] Tidak ada note hilang akibat kesalahan parser.
+- [ ] Note sequence sesuai dengan sumber chart.
+
+## Gameplay
+
+- [ ] Note menggunakan sprite resmi.
+- [ ] Receptor menggunakan sprite resmi.
+- [ ] Receptor memiliki idle animation.
+- [ ] Receptor memiliki pressed animation.
+- [ ] Receptor memiliki confirm animation.
+- [ ] Note bergerak bottom-to-top.
+- [ ] Hold note benar.
+- [ ] Sustain note benar.
+- [ ] Judgment benar.
+- [ ] Character animation benar.
+- [ ] HUD menggunakan aset yang sesuai.
+
+## UI
+
+- [ ] Main Menu konsisten dengan FNF.
+- [ ] Lobby konsisten dengan FNF.
+- [ ] Free Play konsisten dengan FNF.
+- [ ] Online PvP konsisten dengan FNF.
+- [ ] Settings konsisten dengan FNF.
+- [ ] Pause Menu konsisten dengan FNF.
+- [ ] Results Screen konsisten dengan FNF.
+- [ ] Tidak ada tampilan dashboard generik yang tidak sesuai.
 
 ## Audio
 
 - [ ] Menu music berfungsi.
-- [ ] Navigation sound berfungsi.
-- [ ] Confirm sound berfungsi.
-- [ ] Cancel sound berfungsi.
+- [ ] Sound effects berfungsi.
 - [ ] Song preview berfungsi.
-- [ ] Volume settings berfungsi.
+- [ ] Gameplay audio sinkron.
 - [ ] Audio tidak bertumpuk.
-- [ ] Gameplay audio tetap sinkron.
+- [ ] Volume settings berfungsi.
 
-## Note Highway
+## Online PvP
 
-- [ ] Note menggunakan aset resmi.
-- [ ] Receptor menggunakan aset resmi.
-- [ ] Receptor memiliki animasi idle.
-- [ ] Receptor memiliki animasi pressed.
-- [ ] Receptor memiliki animasi confirm.
-- [ ] Note muncul berdasarkan chart.
-- [ ] Note bergerak dari bawah ke atas.
-- [ ] Semua lane menampilkan note yang benar.
-- [ ] Tap note berfungsi.
-- [ ] Hold note berfungsi.
-- [ ] Sustain note berfungsi.
-- [ ] Input keyboard terdeteksi.
-- [ ] Judgment sesuai timing.
-- [ ] Note diselesaikan setelah hit.
-- [ ] Miss terdeteksi dengan benar.
-- [ ] Karakter bereaksi terhadap input.
-- [ ] Tombol arah besar di bawah gameplay dihilangkan.
-- [ ] Tidak ada panah outline generik jika aset resmi tersedia.
-
-## Multiplayer
-
-- [ ] Player 1 dan Player 2 memiliki receptor masing-masing.
 - [ ] Kedua pemain memainkan chart yang sama.
-- [ ] Input masing-masing pemain terpisah.
-- [ ] Animasi masing-masing karakter independen.
-- [ ] Judgment masing-masing pemain benar.
-- [ ] Score dan HP tersinkronisasi.
-- [ ] Combat tetap divalidasi server.
-- [ ] Online PvP tetap berfungsi.
-
-## Final QA
-
-- [ ] Semua halaman konsisten secara visual.
-- [ ] Semua aset dimuat dengan benar.
-- [ ] Tidak ada missing asset.
-- [ ] Tidak ada audio error.
-- [ ] Tidak ada regresi gameplay.
-- [ ] Tidak ada regresi multiplayer.
-- [ ] Tidak ada masalah judgment timing.
-- [ ] Berjalan di browser desktop.
+- [ ] Input independen.
+- [ ] Judgment independen.
+- [ ] Karakter independen.
+- [ ] HP tersinkronisasi.
+- [ ] Hasil pertandingan benar.
 
 ---
 
-# 24. FINAL INSTRUCTIONS FOR AI CODING AGENT
+# 13. REQUIRED TESTING
 
-Lakukan audit terhadap keseluruhan proyek sebelum implementasi.
+AI coding agent wajib melakukan pengujian dengan lagu dan chart yang benar-benar tersedia.
 
-Gunakan screenshot Lobby dan screenshot Gameplay yang diberikan pengguna sebagai referensi kondisi saat ini.
+Jangan hanya menggunakan satu chart buatan untuk membuktikan bahwa sistem bekerja.
 
-Fokus pekerjaan:
+Minimal lakukan pengujian:
 
-1. Menyamakan seluruh UI platform dengan identitas visual FNF.
-2. Mengintegrasikan aset menu dan audio resmi.
-3. Memperbaiki Lobby dan seluruh halaman yang masih generik.
-4. Mengintegrasikan note dan receptor sprites resmi.
-5. Memperbaiki note spawning dan movement.
-6. Memperbaiki receptor animation.
-7. Memperbaiki keyboard input dan hit detection.
-8. Menghilangkan tombol arah besar di bawah gameplay.
-9. Memastikan animasi karakter dan judgment terintegrasi.
-10. Mempertahankan Free Play dan Online PvP.
+1. Satu lagu dengan chart Easy.
+2. Lagu yang sama dengan chart Normal.
+3. Lagu yang sama dengan chart Hard jika tersedia.
+4. Chart dengan hold note.
+5. Chart dengan sustain note.
+6. Chart dengan perubahan tempo jika tersedia.
+7. Free Play.
+8. Online PvP menggunakan dua browser atau dua client.
 
-Jangan hanya membuat mockup atau tampilan statis.
+Untuk setiap pengujian, bandingkan:
 
-Jangan menyatakan pekerjaan selesai hanya karena aset sudah terlihat.
+- Jumlah note sumber.
+- Jumlah note hasil parser.
+- Urutan note.
+- Lane.
+- Timestamp.
+- Sustain duration.
+- Total note yang berhasil dimainkan.
+- Judgment breakdown.
+- Accuracy.
+- Score.
 
-Seluruh navigasi, audio, note, receptor, input, judgment, dan animasi harus benar-benar berfungsi.
+Buat laporan hasil pengujian.
 
-Jika ada keterbatasan teknis, dokumentasikan penyebab dan alternatifnya sebelum mengubah arsitektur.
+---
+
+# 14. FINAL INSTRUCTIONS FOR AI CODING AGENT
+
+Jangan mengulangi pendekatan implementasi sebelumnya yang hanya mengganti beberapa sprite tetapi mempertahankan sistem generik.
+
+Pengguna menginginkan pemanfaatan aset FNF secara menyeluruh.
+
+Prioritas pengerjaan:
+
+1. Audit repository dan seluruh aset.
+2. Audit chart source dan parser.
+3. Hapus random note generation.
+4. Integrasikan aset note dan receptor dengan benar.
+5. Perbaiki note movement dan hit detection.
+6. Integrasikan character dan stage assets.
+7. Rekonstruksi Lobby dan seluruh menu.
+8. Rekonstruksi Results Screen.
+9. Integrasikan seluruh audio yang relevan.
+10. Pastikan Online PvP tetap berfungsi.
+
+Jangan mengklaim seluruh aset sudah digunakan tanpa membuat asset inventory dan mapping.
+
+Jangan membuat chart palsu.
+
+Jangan membuat note secara random.
+
+Jangan mengganti aset resmi dengan ilustrasi generik.
+
+Jangan merusak fitur yang sudah selesai pada issue sebelumnya.
+
+Hormati lisensi, atribusi, dan ketentuan penggunaan repository.
 
 **DEFINITION OF DONE:**
 
-Seluruh platform Modern Rhythm Battle memiliki identitas visual dan audio yang konsisten dengan Friday Night Funkin.
+Modern Rhythm Battle harus menggunakan sistem aset dan chart FNF secara terintegrasi, bukan sekadar mengambil beberapa gambar dari repository.
 
-Lobby tidak lagi terlihat seperti dashboard generik.
+Note yang muncul harus sesuai dengan chart lagu sebenarnya.
 
-Note Highway menggunakan aset note dan receptor yang sesuai.
+Receptor, note, hold, sustain, character, stage, HUD, menu, audio, dan Results Screen harus menggunakan aset yang tepat.
 
-Note bergerak dari bawah ke atas menuju receptor.
-
-Input keyboard menghasilkan animasi pressed dan confirm yang benar.
-
-Hit detection, judgment, score, combo, dan karakter animation berjalan secara terintegrasi.
-
-Free Play dan Online PvP tetap berfungsi tanpa regresi.
+Seluruh pengalaman harus konsisten, berfungsi di browser, serta tetap mendukung Free Play dan Online PvP 1 VS 1.

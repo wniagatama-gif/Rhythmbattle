@@ -1,8 +1,1 @@
-export interface SongMetadata {
-  id: string;
-  title: string;
-  artist: string;
-  bpm: number;
-}
-
-export * from "./charts";
+export { RAW_CHART_FILES, OFFICIAL_FNF_CHART_FILES, ALL_CHART_FILES } from "./charts";

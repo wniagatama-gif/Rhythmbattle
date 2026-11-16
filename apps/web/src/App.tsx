@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { RAW_CHART_FILES } from "@rhythm-battle/game-data";
+import { ALL_CHART_FILES } from "@rhythm-battle/game-data";
 import type { HealthResponse } from "@rhythm-battle/shared";
 import { GamePlayScreen } from "./components/GamePlayScreen";
 import { ResultScreen } from "./components/ResultScreen";
@@ -38,7 +38,7 @@ export function App() {
   const parsedChartsResult = useMemo<{ charts: ChartFile[]; error: string | null }>(() => {
     try {
       return {
-        charts: ChartParser.parseList(RAW_CHART_FILES),
+        charts: ChartParser.parseList(ALL_CHART_FILES),
         error: null
       };
     } catch (err: unknown) {

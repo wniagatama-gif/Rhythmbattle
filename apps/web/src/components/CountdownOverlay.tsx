@@ -15,6 +15,13 @@ const COUNTDOWN_SOUNDS: Record<string, string> = {
   "GO!": "/assets/sounds/countdown/introGO.ogg"
 };
 
+const COUNTDOWN_IMAGES: Record<string, string> = {
+  "2": "/assets/images/ui/countdown/ready.png",
+  "1": "/assets/images/ui/countdown/set.png",
+  "GO!": "/assets/images/ui/countdown/go.png",
+  "BATTLE!": "/assets/images/ui/countdown/go.png"
+};
+
 export function CountdownOverlay({ label, trackTitle, onCancel }: CountdownOverlayProps) {
   const lastSoundRef = useRef<string>("");
 
@@ -23,40 +30,55 @@ export function CountdownOverlay({ label, trackTitle, onCancel }: CountdownOverl
     if (soundUrl && soundUrl !== lastSoundRef.current) {
       lastSoundRef.current = soundUrl;
       const audio = new Audio(soundUrl);
-      audio.volume = 0.8;
+      audio.volume = 0.85;
       audio.play().catch(() => {});
     }
   }, [label]);
+
+  const countdownImage = COUNTDOWN_IMAGES[label];
+
   return (
     <div
       role="status"
       aria-live="assertive"
-      className="absolute inset-0 bg-[#0B0D14]/90 flex flex-col items-center justify-center p-6 text-center z-20"
+      className="absolute inset-0 bg-[#0B0D14]/85 backdrop-blur-[2px] flex flex-col items-center justify-center p-6 text-center z-20 select-none"
     >
-      <p className="text-xs font-bold uppercase tracking-widest text-[#CBD5E1] mb-2">
+      <p className="text-sm font-black uppercase italic tracking-widest text-[#FDE047] drop-shadow-[0_2px_0_#000] mb-4">
         {trackTitle}
       </p>
-      <div className="text-6xl sm:text-7xl font-black tracking-tight text-[#F8FAFC] tabular-nums mb-6 drop-shadow-[0_4px_0_#05070B]">
-        {label || "3"}
+
+      {/* Official FNF Countdown Image or Number */}
+      <div className="h-32 flex items-center justify-center mb-6">
+        {countdownImage ? (
+          <img
+            src={countdownImage}
+            alt={label}
+            className="h-28 sm:h-32 object-contain drop-shadow-[0_6px_0_rgba(0,0,0,0.9)] animate-bounce"
+          />
+        ) : (
+          <div className="text-7xl sm:text-8xl font-black italic tracking-tighter text-[#F8FAFC] drop-shadow-[0_6px_0_#000000] animate-pulse">
+            {label || "3"}
+          </div>
+        )}
       </div>
 
       <div className="mb-6 space-y-2">
-        <p className="text-xs font-semibold uppercase tracking-wider text-[#CBD5E1]">
-          Arrow Key Lanes
+        <p className="text-xs font-black uppercase italic tracking-wider text-gray-300">
+          Highway Key Controls
         </p>
         <div className="flex items-center justify-center gap-2">
           {LANE_CONFIG.map((lane) => (
             <div
               key={lane.id}
-              className="px-2.5 py-1.5 rounded-md border-2 border-[#090B10] bg-[#141824] flex items-center gap-1.5"
+              className="px-3 py-1.5 rounded-lg border-2 border-white/20 bg-black/60 flex items-center gap-1.5 shadow-[0_2px_0_#000]"
             >
               <span
-                className="text-base font-black leading-none"
+                className="text-lg font-black leading-none"
                 style={{ color: lane.textColorOnDark }}
               >
                 {lane.symbol}
               </span>
-              <span className="text-[11px] font-bold text-[#F8FAFC]">
+              <span className="text-[11px] font-black uppercase text-white">
                 {lane.direction}
               </span>
             </div>
@@ -67,9 +89,9 @@ export function CountdownOverlay({ label, trackTitle, onCancel }: CountdownOverl
       <button
         type="button"
         onClick={onCancel}
-        className="min-h-[44px] px-5 py-2 rounded-md bg-[#1E2436] border-2 border-[#090B10] shadow-[0_3px_0_#05070B] text-sm font-bold text-[#F8FAFC] hover:bg-[#2A334B]"
+        className="min-h-[44px] px-5 py-2 rounded-xl bg-black/60 hover:bg-black/90 border-2 border-white/30 text-xs font-black uppercase tracking-wider text-white transition-transform active:translate-y-0.5"
       >
-        Cancel
+        Cancel Battle (ESC)
       </button>
     </div>
   );

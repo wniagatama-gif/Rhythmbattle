@@ -326,3 +326,42 @@ describe("ScoreEngine", () => {
     expect(finalState.accuracy).toBe(91.7);
   });
 });
+
+describe("Official FNF Charts & Adaptation", () => {
+  test("parses all 12 official FNF charts (Bopeebo, Fresh, Dad Battle, Spookeez) accurately with zero random notes", async () => {
+    const { OFFICIAL_FNF_CHART_FILES } = await import("../packages/game-data/src");
+    const charts = ChartParser.parseList(OFFICIAL_FNF_CHART_FILES);
+    expect(charts.length).toBe(12);
+
+    const bopeeboEasy = charts.find((c) => c.id === "bopeebo-easy");
+    const bopeeboNormal = charts.find((c) => c.id === "bopeebo-normal");
+    const bopeeboHard = charts.find((c) => c.id === "bopeebo-hard");
+
+    expect(bopeeboEasy).toBeDefined();
+    expect(bopeeboEasy?.title).toBe("Bopeebo");
+    expect(bopeeboEasy?.bpm).toBe(100);
+    expect(bopeeboEasy?.notes.length).toBe(44);
+    expect(bopeeboEasy?.opponentNotes?.length).toBe(44);
+
+    expect(bopeeboNormal).toBeDefined();
+    expect(bopeeboNormal?.notes.length).toBe(51);
+    expect(bopeeboNormal?.opponentNotes?.length).toBe(51);
+
+    expect(bopeeboHard).toBeDefined();
+    expect(bopeeboHard?.notes.length).toBe(62);
+    expect(bopeeboHard?.opponentNotes?.length).toBe(62);
+
+    // Verify all notes are strictly chronological with valid 0..3 lanes
+    for (const chart of charts) {
+      expect(chart.audioFile.startsWith("/assets/songs/")).toBe(true);
+      for (let i = 0; i < chart.notes.length; i += 1) {
+        const note = chart.notes[i]!;
+        expect(note.lane).toBeGreaterThanOrEqual(0);
+        expect(note.lane).toBeLessThanOrEqual(3);
+        if (i > 0) {
+          expect(note.time).toBeGreaterThanOrEqual(chart.notes[i - 1]!.time);
+        }
+      }
+    }
+  });
+});

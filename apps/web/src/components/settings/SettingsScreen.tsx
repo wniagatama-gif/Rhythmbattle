@@ -233,3 +233,4 @@ export function SettingsScreen({ onBack, scrollSpeed, onScrollSpeedChange }: Set
     </div>
   );
 }
+

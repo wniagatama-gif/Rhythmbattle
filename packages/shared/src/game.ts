@@ -99,6 +99,7 @@ export const ChartFileSchema = z.object({
   duration: z.number().finite().positive(),
   difficulty: ChartDifficultySchema,
   notes: z.array(NoteDataSchema).min(1),
+  opponentNotes: z.array(NoteDataSchema).optional(),
   bpmEvents: z.array(BpmEventSchema).optional()
 });
 

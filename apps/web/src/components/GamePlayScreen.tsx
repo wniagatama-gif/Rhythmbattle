@@ -40,21 +40,38 @@ interface GamePlayScreenProps {
 
 interface FeedbackDisplay {
   headline: "SICK!" | "GOOD!" | "BAD" | "SHIT" | "MISS";
+  imageSrc?: string;
   colorClass: string;
 }
 
 function getExpressiveFeedback(judgement: JudgementResult): FeedbackDisplay {
   switch (judgement.type) {
     case "PERFECT":
-      return { headline: "SICK!", colorClass: "text-[#FBBF24]" };
+      return {
+        headline: "SICK!",
+        imageSrc: "/assets/images/ui/popup/sick.png",
+        colorClass: "text-[#FBBF24]"
+      };
     case "GREAT":
-      return { headline: "GOOD!", colorClass: "text-[#34D399]" };
+      return {
+        headline: "GOOD!",
+        imageSrc: "/assets/images/ui/popup/good.png",
+        colorClass: "text-[#34D399]"
+      };
     case "GOOD":
-      return { headline: "BAD", colorClass: "text-[#38BDF8]" };
+      return {
+        headline: "BAD",
+        imageSrc: "/assets/images/ui/popup/bad.png",
+        colorClass: "text-[#38BDF8]"
+      };
     case "MISS": {
       const absMs = Math.abs(judgement.timingDeltaMs);
       if (absMs > 135 && absMs <= 180) {
-        return { headline: "SHIT", colorClass: "text-[#FB7185]" };
+        return {
+          headline: "SHIT",
+          imageSrc: "/assets/images/ui/popup/shit.png",
+          colorClass: "text-[#FB7185]"
+        };
       }
       return { headline: "MISS", colorClass: "text-[#FB7185]" };
     }
@@ -231,11 +248,24 @@ export function GamePlayScreen({
       ? (LANE_SING_STATES[activePressedLaneIndex] ?? playerReaction)
       : playerReaction;
 
+  const currentOpponentSingState = useMemo<CharacterAnimState | null>(() => {
+    if (isPvp || phase !== "playing" || !chart.opponentNotes || chart.opponentNotes.length === 0) {
+      return null;
+    }
+    const activeNote = chart.opponentNotes.find(
+      (n) => currentTime >= n.time - 0.03 && currentTime <= n.time + Math.max(0.22, n.duration ?? 0)
+    );
+    if (!activeNote) return null;
+    return LANE_SING_STATES[activeNote.lane] ?? "singDown";
+  }, [isPvp, phase, chart.opponentNotes, currentTime]);
+
   const beatPhase = Math.floor((currentTime * chart.bpm) / 60);
   const isBeatPulse = beatPhase % 2 === 0;
   const opponentState: CharacterAnimState =
     opponentReaction !== "idle"
       ? opponentReaction
+      : currentOpponentSingState !== null
+      ? currentOpponentSingState
       : !isPvp && phase === "playing" && beatPhase % 8 === 4
       ? "singDown"
       : "idle";
@@ -495,13 +525,21 @@ export function GamePlayScreen({
           </div>
 
           {/* Dedicated Judgment & Combo Bar Above Receptors (Never obscures rising notes) */}
-          <div className="w-full max-w-[440px] h-11 shrink-0 flex items-center justify-between px-3 rounded-lg bg-[#141824] border-2 border-[#090B10] shadow-[0_3px_0_#05070B]">
+          <div className="w-full max-w-[440px] h-12 shrink-0 flex items-center justify-between px-3 rounded-lg bg-[#141824] border-2 border-[#090B10] shadow-[0_3px_0_#05070B]">
             <div className="flex items-center gap-2 min-w-0">
               {feedback && lastJudgement ? (
-                <div key={lastJudgement.timestamp} className="animate-judgement-pop flex items-baseline gap-2">
-                  <span className={`text-lg font-black tracking-tight ${feedback.colorClass}`}>
-                    {feedback.headline}
-                  </span>
+                <div key={lastJudgement.timestamp} className="animate-judgement-pop flex items-center gap-2">
+                  {feedback.imageSrc ? (
+                    <img
+                      src={feedback.imageSrc}
+                      alt={feedback.headline}
+                      className="h-8 w-auto object-contain drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]"
+                    />
+                  ) : (
+                    <span className={`text-lg font-black tracking-tight ${feedback.colorClass}`}>
+                      {feedback.headline}
+                    </span>
+                  )}
                   <span className="text-xs font-bold text-[#CBD5E1] tabular-nums">
                     {lastJudgement.timingDeltaMs >= 0 ? "+" : ""}
                     {Math.round(lastJudgement.timingDeltaMs)} ms
@@ -514,11 +552,18 @@ export function GamePlayScreen({
               )}
             </div>
 
-            <div className="text-right tabular-nums">
+            <div className="text-right tabular-nums flex items-center gap-1.5">
               {displayCombo > 0 && (
-                <span className="text-base font-black text-[#FBBF24]">
-                  {displayCombo}x COMBO
-                </span>
+                <>
+                  <img
+                    src="/assets/images/ui/popup/combo.png"
+                    alt="Combo"
+                    className="h-5 w-auto object-contain opacity-90"
+                  />
+                  <span className="text-base font-black text-[#FBBF24]">
+                    {displayCombo}
+                  </span>
+                </>
               )}
             </div>
           </div>
@@ -566,36 +611,47 @@ export function GamePlayScreen({
           role="dialog"
           aria-modal="true"
           aria-labelledby="pause-dialog-title"
-          className="absolute inset-0 bg-[#0B0D14]/88 flex items-center justify-center p-4 z-30"
+          className="absolute inset-0 bg-[#0B0D14]/90 flex items-center justify-center p-4 z-40 backdrop-blur-sm"
+          style={{
+            backgroundImage: "url('/assets/images/pause/pauseBG.png')",
+            backgroundSize: "cover",
+            backgroundPosition: "center"
+          }}
         >
-          <div className="w-full max-w-xs p-6 rounded-xl bg-[#141824] border-[3px] border-[#090B10] shadow-[0_8px_0_#05070B] space-y-4 text-center">
-            <h3 id="pause-dialog-title" className="text-2xl font-black text-[#F8FAFC] uppercase tracking-tight">
-              Paused
-            </h3>
-            <p className="text-sm text-[#CBD5E1]">
-              Press Escape to resume, or pick an action below.
-            </p>
-            <div className="space-y-2.5 pt-1">
+          <div className="w-full max-w-sm p-6 sm:p-8 rounded-2xl bg-[#141824]/95 border-4 border-[#090B10] shadow-[0_10px_0_#05070B] space-y-5 text-center">
+            <div className="space-y-1">
+              <span className="text-[11px] font-black uppercase tracking-widest text-[#FBBF24]">
+                {chart.difficulty} Difficulty
+              </span>
+              <h3 id="pause-dialog-title" className="text-3xl font-black text-[#F8FAFC] uppercase tracking-tight italic">
+                {chart.title}
+              </h3>
+              <p className="text-xs font-bold text-[#94A3B8] tracking-wider uppercase">
+                Game Paused
+              </p>
+            </div>
+
+            <div className="space-y-3 pt-1">
               <button
                 type="button"
                 onClick={onResume}
-                className="w-full min-h-[44px] px-4 py-2.5 rounded-md bg-[#BE123C] hover:bg-[#9F1239] border-2 border-[#090B10] shadow-[0_3px_0_#05070B] text-white font-extrabold text-sm uppercase"
+                className="w-full min-h-[46px] px-5 py-2.5 rounded-lg bg-[#38BDF8] hover:bg-[#0284C7] border-3 border-[#090B10] shadow-[0_4px_0_#05070B] active:translate-y-0.5 text-[#090B10] hover:text-white font-black text-sm uppercase tracking-wider transition-all transform hover:-rotate-1"
               >
                 Resume Battle
               </button>
               <button
                 type="button"
                 onClick={onRestart}
-                className="w-full min-h-[44px] px-4 py-2.5 rounded-md bg-[#1E2436] hover:bg-[#2A334B] border-2 border-[#090B10] shadow-[0_3px_0_#05070B] text-[#F8FAFC] font-bold text-sm uppercase"
+                className="w-full min-h-[46px] px-5 py-2.5 rounded-lg bg-[#1E2436] hover:bg-[#2A334B] border-3 border-[#090B10] shadow-[0_4px_0_#05070B] active:translate-y-0.5 text-[#F8FAFC] font-extrabold text-sm uppercase tracking-wider transition-all transform hover:rotate-1"
               >
                 Restart Track
               </button>
               <button
                 type="button"
                 onClick={onExit}
-                className="w-full min-h-[44px] px-4 py-2.5 rounded-md bg-[#0B0D14] hover:bg-[#1E2436] border-2 border-[#090B10] text-[#CBD5E1] hover:text-[#F8FAFC] font-bold text-sm uppercase"
+                className="w-full min-h-[46px] px-5 py-2.5 rounded-lg bg-[#BE123C] hover:bg-[#9F1239] border-3 border-[#090B10] shadow-[0_4px_0_#05070B] active:translate-y-0.5 text-white font-extrabold text-sm uppercase tracking-wider transition-all"
               >
-                Exit to Song Select
+                Exit to Free Play
               </button>
             </div>
           </div>

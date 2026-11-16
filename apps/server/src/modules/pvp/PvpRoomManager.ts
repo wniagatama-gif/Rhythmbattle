@@ -1,4 +1,4 @@
-import { RAW_CHART_FILES } from "@rhythm-battle/game-data";
+import { ALL_CHART_FILES } from "@rhythm-battle/game-data";
 import {
   ChartFileSchema,
   DEFAULT_GAME_CONFIG,
@@ -84,7 +84,7 @@ export class PvpRoomManager {
   constructor(options?: { countdownMs?: number }) {
     this.countdownMs = options?.countdownMs ?? 3000;
     let fallback: ChartFile | null = null;
-    for (const raw of RAW_CHART_FILES) {
+    for (const raw of ALL_CHART_FILES) {
       const parsed = ChartFileSchema.safeParse(raw);
       if (parsed.success) {
         const sortedNotes = [...parsed.data.notes].sort((a, b) =>
@@ -100,7 +100,7 @@ export class PvpRoomManager {
     if (!fallback) {
       throw new Error("No valid charts available for PvP server.");
     }
-    this.defaultChart = fallback;
+    this.defaultChart = this.charts.get("demo-song-001-easy") ?? fallback;
   }
 
   registerConnection(connectionId: string, send: PvpSendFn): void {
